@@ -1,7 +1,64 @@
 /* ============================================
    FlickZZ Resources — Features Stylesheet
-   Likes, Owner badge, Threaded replies, Leaderboard
+   Likes, Owner badge, Threaded replies, Leaderboard, Contact lists
    ============================================ */
+
+/* ---------- CONTACT LIST (about / terms / privacy) ---------- */
+.contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.contact-list li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.25s ease;
+}
+.contact-list li:hover {
+    transform: translateX(4px);
+    border-color: var(--primary);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+}
+.contact-list li i {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+.contact-list li strong {
+    color: var(--text);
+    font-weight: 700;
+}
+.contact-list li a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+.contact-list li a:hover {
+    border-bottom-color: var(--primary);
+    color: var(--primary);
+}
+.contact-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    flex-basis: 100%;
+    margin-left: 2rem;
+    margin-top: -0.25rem;
+}
+@media (max-width: 600px) {
+    .contact-list li { padding: 0.75rem 0.9rem; gap: 0.4rem; }
+    .contact-note { margin-left: 0; flex-basis: 100%; }
+}
 
 /* ---------- LIKE BUTTON ---------- */
 .like-row {
