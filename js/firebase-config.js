@@ -77,7 +77,7 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
-    firebaseReady = firebaseConfig.apiKey !== "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0";
+    firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
 
     if (!firebaseReady) {
         console.warn(
