@@ -41,7 +41,7 @@ const firebaseConfig = {
 
 // 👑 Primary OWNER email — ONLY this email can become admin.
 // 💡 Use the SAME email everywhere: here, in firestore.rules, and in storage.rules.
-export const OWNER_EMAIL = "your-email@gmail.com"; // ← REPLACE with YOUR Gmail
+export const OWNER_EMAIL = "toxictruthx1@gmail.com"; // ← REPLACE with YOUR Gmail
 
 // 🔒 OWNER UID lock (recommended for max security)
 // HOW TO USE:
@@ -57,7 +57,7 @@ export const OWNER_UID = ""; // ← Optional but RECOMMENDED. e.g. "AbCdEf123XyZ
 // This is a SECOND PASSWORD on top of your Firebase login.
 // Make it long & random (16+ characters). DO NOT share with anyone.
 // 💡 You can change this anytime by editing this file & pushing to GitHub.
-export const ADMIN_ACCESS_CODE = "FlickZZ-Owner-Arsh-2026-Secret"; // ← REPLACE
+export const ADMIN_ACCESS_CODE = "FlickZZ@Arsh2026#Secure"; // ← REPLACE
 
 // 📜 Secondary admin emails (optional). Leave empty if you're the ONLY admin.
 // Format: lowercase emails.
