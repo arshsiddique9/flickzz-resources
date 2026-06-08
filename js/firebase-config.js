@@ -70,7 +70,7 @@ export const ADMIN_EMAILS = [
 // Initialize Firebase
 // ============================================
 let app, auth, db, storage;
-let firebaseReady = false;
+let firebaseReady = true;
 
 try {
     app = initializeApp(firebaseConfig);
