@@ -1,3 +1,6 @@
+⚠️ NOT OPEN SOURCE
+This project is proprietary and owned exclusively by Arsh Siddique. The source code is publicly available for transparency and deployment purposes only. No permission is granted to copy, modify, or redistribute any part of this project without written consent.
+
 # 🎮 FlickZZ Resources
 
 > A modern Minecraft resources download platform — plugins, mods, modpacks, configs, and tools.
