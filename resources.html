@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources — FlickZZ Resources</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/features.css">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                <span>Flick<span class="logo-accent">ZZ</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="resources.html" class="active">Resources</a></li>
+                <li><a href="leaderboard.html">Leaderboard</a></li>
+                <li><a href="about.html">About</a></li>
+                <li class="auth-only hidden"><a href="dashboard.html">Dashboard</a></li>
+                
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                <div class="auth-buttons guest-only">
+                    <a href="login.html" class="btn btn-ghost">Login</a>
+                    <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                <div class="user-menu auth-only hidden">
+                    <button class="user-avatar" id="userAvatar"><i class="fas fa-user"></i></button>
+                    <div class="dropdown" id="userDropdown">
+                        <div class="dropdown-user">
+                            <strong id="userName">User</strong>
+                            <span id="userEmail">user@example.com</span>
+                        </div>
+                        <a href="dashboard.html"><i class="fas fa-gauge"></i> Dashboard</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+                <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>Browse Resources</h1>
+            <p>Discover plugins, mods, modpacks, configs, and tools for your Minecraft server.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <!-- Search & Filter -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search resources...">
+                </div>
+                <div class="filter-group">
+                    <select id="categoryFilter" class="select">
+                        <option value="">All Categories</option>
+                        <option value="plugin">Plugins</option>
+                        <option value="mod">Mods</option>
+                        <option value="modpack">Modpacks</option>
+                        <option value="config">Configs</option>
+                        <option value="tool">Tools</option>
+                    </select>
+                    <select id="sortFilter" class="select">
+                        <option value="newest">Newest</option>
+                        <option value="popular">Most Downloaded</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="name">A-Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="resource-grid" id="resourceGrid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+
+            <div class="empty-state hidden" id="emptyState">
+                <i class="fas fa-box-open"></i>
+                <h3>No resources found</h3>
+                <p>Try adjusting your filters or check back later.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 FlickZZ Resources. All rights reserved. Owned by <strong>Arsh Siddique</strong>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="js/site-config.js"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/resources.js"></script>
+    <script src="js/protection.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// ============================================
+// FlickZZ Resources - Firebase Storage Rules
+// Owner: Arsh Siddique © 2026
+// ============================================
+//
+// ⚠️ IMPORTANT — Replace the email below with YOUR OWNER email.
+// This MUST match:
+//   • OWNER_EMAIL in js/firebase-config.js
+//   • isAdmin() emails in firestore.rules
+// Use lowercase. Keep it to ONE email for max security.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email in [
+        'your-email@gmail.com'   // ← REPLACE with YOUR Gmail (same as OWNER_EMAIL)
+        // 'co-admin@gmail.com'  // ← (optional) extra admin, uncomment if needed
+      ];
+    }
+
+    // Resource files — readable by any signed-in user, writable only by admin
+    match /resources/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin()
+        && request.resource.size < 50 * 1024 * 1024; // 50 MB max
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

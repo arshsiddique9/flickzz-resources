@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlickZZ Resources — Premium Minecraft Plugins, Mods & Tools</title>
+    <meta name="description" content="Download free Minecraft plugins, mods, modpacks, configs and tools. Curated by FlickZZ Resources. Owned by Arsh Siddique.">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/features.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                <span>Flick<span class="logo-accent">ZZ</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="resources.html">Resources</a></li>
+                <li><a href="leaderboard.html">Leaderboard</a></li>
+                <li><a href="about.html">About</a></li>
+                <li class="auth-only hidden"><a href="dashboard.html">Dashboard</a></li>
+                
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="auth-buttons guest-only">
+                    <a href="login.html" class="btn btn-ghost">Login</a>
+                    <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                <div class="user-menu auth-only hidden">
+                    <button class="user-avatar" id="userAvatar">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <div class="dropdown" id="userDropdown">
+                        <div class="dropdown-user">
+                            <strong id="userName">User</strong>
+                            <span id="userEmail">user@example.com</span>
+                        </div>
+                        <a href="dashboard.html"><i class="fas fa-gauge"></i> Dashboard</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-section">
+        <div class="hero-bg">
+            <div class="grid-overlay"></div>
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+        <div class="hero-container">
+            <div class="hero-badge fade-in">
+                <i class="fas fa-bolt"></i>
+                <span>Premium Minecraft Resources</span>
+            </div>
+            <h1 class="hero-title fade-in-up">
+                Level Up Your <span class="gradient-text">Minecraft</span><br>
+                Server Experience
+            </h1>
+            <p class="hero-subtitle fade-in-up delay-1">
+                Download free, curated plugins, mods, modpacks, configs, and tools.
+                Built for creators, by creators.
+            </p>
+            <div class="hero-actions fade-in-up delay-2">
+                <a href="resources.html" class="btn btn-primary btn-lg">
+                    <i class="fas fa-download"></i> Browse Resources
+                </a>
+                <a href="signup.html" class="btn btn-outline btn-lg guest-only">
+                    <i class="fas fa-user-plus"></i> Get Started Free
+                </a>
+                <a href="dashboard.html" class="btn btn-outline btn-lg auth-only hidden">
+                    <i class="fas fa-gauge"></i> My Dashboard
+                </a>
+            </div>
+            <div class="hero-stats fade-in-up delay-3">
+                <div class="stat">
+                    <div class="stat-num" id="statResources" data-key="resources">0</div>
+                    <div class="stat-label">Resources</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num" id="statDownloads" data-key="downloads">0</div>
+                    <div class="stat-label">Downloads</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num" id="statMembers" data-key="members">0</div>
+                    <div class="stat-label">Members</div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="section" id="categories-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Categories</span>
+                <h2 class="section-title">Explore Every Resource Type</h2>
+                <p class="section-subtitle">From plugins to modpacks — everything a server owner needs.</p>
+            </div>
+            <div class="category-grid">
+                <a href="resources.html?category=plugin" class="category-card" data-aos="fade-up">
+                    <div class="category-icon"><i class="fas fa-plug"></i></div>
+                    <h3>Plugins</h3>
+                    <p>Spigot, Paper & Bukkit plugins</p>
+                    <span class="category-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="resources.html?category=mod" class="category-card">
+                    <div class="category-icon"><i class="fas fa-puzzle-piece"></i></div>
+                    <h3>Mods</h3>
+                    <p>Forge & Fabric modifications</p>
+                    <span class="category-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="resources.html?category=modpack" class="category-card">
+                    <div class="category-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3>Modpacks</h3>
+                    <p>Curated mod collections</p>
+                    <span class="category-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="resources.html?category=config" class="category-card">
+                    <div class="category-icon"><i class="fas fa-sliders"></i></div>
+                    <h3>Configs</h3>
+                    <p>Ready-to-use configurations</p>
+                    <span class="category-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="resources.html?category=tool" class="category-card">
+                    <div class="category-icon"><i class="fas fa-toolbox"></i></div>
+                    <h3>Tools</h3>
+                    <p>Server management utilities</p>
+                    <span class="category-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Resources -->
+    <section class="section section-alt" id="featured-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Featured</span>
+                <h2 class="section-title">Top Picks This Week</h2>
+                <p class="section-subtitle">Hand-picked resources trending on the platform.</p>
+            </div>
+            <div class="resource-grid" id="featuredGrid">
+                <!-- Populated by JS -->
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+            <div class="section-footer">
+                <a href="resources.html" class="btn btn-outline">
+                    View All Resources <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Why FlickZZ</span>
+                <h2 class="section-title">Built for the Community</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+                    <h3>100% Safe</h3>
+                    <p>Every resource is scanned and verified before publishing.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                    <h3>Fast Downloads</h3>
+                    <p>Cloud-powered delivery with global CDN performance.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Always Free</h3>
+                    <p>Only legal, free, or self-created content. No leaks.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon"><i class="fas fa-arrows-rotate"></i></div>
+                    <h3>Regular Updates</h3>
+                    <p>New resources added weekly, curated by our team.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTube Promo Section -->
+    <section class="promo-section" id="youtube-section">
+        <div class="container">
+            <div class="promo-card">
+                <div class="promo-content">
+                    <div class="promo-badge">
+                        <i class="fab fa-youtube"></i>
+                        <span>YouTube Channel</span>
+                    </div>
+                    <h2>Watch Tutorials, Setups & Server Reviews</h2>
+                    <p>Subscribe to the official FlickZZ YouTube channel for plugin showcases, server setup tutorials, modpack reviews, and exclusive Minecraft content.</p>
+                    <button class="btn btn-youtube btn-lg" data-social="youtube" aria-label="Subscribe on YouTube">
+                        <i class="fab fa-youtube"></i> Subscribe Now
+                    </button>
+                </div>
+                <div class="promo-visual" data-social="youtube" aria-label="Open YouTube channel">
+                    <div class="promo-play"><i class="fas fa-play"></i></div>
+                    <div class="promo-channel-name">
+                        <i class="fab fa-youtube"></i>
+                        <span>@yt-flickzz</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discord Banner -->
+            <a class="discord-banner" data-social="discord" aria-label="Join our Discord">
+                <i class="fab fa-discord"></i>
+                <div class="discord-banner-content">
+                    <h3>Need help? Join our Discord community</h3>
+                    <p>Get support, share feedback, and chat with other server creators in real-time.</p>
+                </div>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section class="section" id="feedback-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Community</span>
+                <h2 class="section-title">What People Are Saying</h2>
+                <p class="section-subtitle">Honest feedback from our logged-in community members.</p>
+            </div>
+
+            <div class="feedback-grid">
+                <!-- Submit form (logged-in users only) -->
+                <div class="feedback-form-card auth-only hidden">
+                    <h3><i class="fas fa-pen"></i> Share Your Feedback</h3>
+                    <div class="feedback-rate-input" id="feedbackStars">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <textarea id="feedbackText" rows="3" placeholder="Tell us what you think about FlickZZ Resources..." maxlength="500"></textarea>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem; gap:1rem; flex-wrap:wrap;">
+                        <small style="color:var(--text-dim);"><span id="feedbackCharCount">0</span>/500</small>
+                        <button class="btn btn-primary" id="submitFeedbackBtn">
+                            <i class="fas fa-paper-plane"></i> Submit Feedback
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Login prompt for guests -->
+                <div class="feedback-form-card guest-only" style="text-align:center;">
+                    <i class="fas fa-lock" style="font-size:2rem; color:var(--text-dim); margin-bottom:0.75rem;"></i>
+                    <h3 style="justify-content:center;">Sign in to share feedback</h3>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Only logged-in members can submit feedback to keep the community genuine.</p>
+                    <a href="login.html" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Log In</a>
+                </div>
+
+                <!-- Feedback list -->
+                <div class="feedback-list" id="feedbackList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <h2>Ready to power up your server?</h2>
+                <p>Join thousands of Minecraft creators downloading premium resources for free.</p>
+                <a href="signup.html" class="btn btn-primary btn-lg guest-only">
+                    <i class="fas fa-rocket"></i> Create Free Account
+                </a>
+                <a href="resources.html" class="btn btn-primary btn-lg auth-only hidden">
+                    <i class="fas fa-compass"></i> Explore Resources
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                        <span>Flick<span class="logo-accent">ZZ</span></span>
+                    </a>
+                    <p>Premium Minecraft resources curated for server owners and creators worldwide.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="resources.html">Resources</a>
+                    <a href="leaderboard.html">Leaderboard</a>
+                    <a href="about.html">About</a>
+                    <a href="login.html">Login</a>
+                    <a href="signup.html">Sign Up</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a class="discord" data-social="discord" aria-label="Join our Discord" title="Discord"><i class="fab fa-discord"></i></a>
+                        <a class="youtube" data-social="youtube" aria-label="Subscribe on YouTube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 FlickZZ Resources. All rights reserved. Owned by <strong>Arsh Siddique</strong>.</p>
+                <p class="copy-warning">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    Content on this platform is protected. Unauthorized copying, redistribution, or reuse is strictly prohibited.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase & App Scripts -->
+    <script type="module" src="js/site-config.js"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/home.js"></script>
+    <script type="module" src="js/feedback.js"></script>
+    <script src="js/protection.js"></script>
+</body>
+</html>

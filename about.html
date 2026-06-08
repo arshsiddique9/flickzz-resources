@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — FlickZZ Resources</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/features.css">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                <span>Flick<span class="logo-accent">ZZ</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="resources.html">Resources</a></li>
+                <li><a href="leaderboard.html">Leaderboard</a></li>
+                <li><a href="about.html" class="active">About</a></li>
+                <li class="auth-only hidden"><a href="dashboard.html">Dashboard</a></li>
+                
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                <div class="auth-buttons guest-only">
+                    <a href="login.html" class="btn btn-ghost">Login</a>
+                    <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                <div class="user-menu auth-only hidden">
+                    <button class="user-avatar" id="userAvatar"><i class="fas fa-user"></i></button>
+                    <div class="dropdown" id="userDropdown">
+                        <div class="dropdown-user">
+                            <strong id="userName">User</strong>
+                            <span id="userEmail">user@example.com</span>
+                        </div>
+                        <a href="dashboard.html"><i class="fas fa-gauge"></i> Dashboard</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+                <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>About FlickZZ Resources</h1>
+            <p>A home for Minecraft creators to discover and share quality resources.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="content-prose">
+                <h2>Our Mission</h2>
+                <p>FlickZZ Resources was created with a simple vision: provide Minecraft server owners, modders, and creators a clean, fast, and safe place to find high-quality resources. Whether you're launching your first SMP or running a massive network, our curated library is here to help.</p>
+
+                <h2>What We Offer</h2>
+                <ul>
+                    <li><strong>Plugins</strong> — Spigot, Paper, and Bukkit plugins for every need.</li>
+                    <li><strong>Mods</strong> — Forge and Fabric mods to transform your game.</li>
+                    <li><strong>Modpacks</strong> — Carefully balanced collections for unique experiences.</li>
+                    <li><strong>Configs</strong> — Ready-to-use configurations to save you hours.</li>
+                    <li><strong>Tools</strong> — Utilities for managing and optimizing your server.</li>
+                </ul>
+
+                <h2>Ownership</h2>
+                <p>FlickZZ Resources is owned and operated by <strong>Arsh Siddique</strong>. All content published on this platform is either self-created, legally free, or properly licensed. We do not host or distribute paid leaks, cracked software, or any illegal content.</p>
+
+                <h2>Content Policy</h2>
+                <p>Every resource is reviewed before publication. If you believe a resource violates our policy or infringes on your rights, please contact us immediately.</p>
+
+                <h2>Contact</h2>
+                <p>For inquiries, takedowns, or partnership opportunities, reach out through our Discord community or the contact channels listed in the footer.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2026 FlickZZ Resources. All rights reserved. Owned by <strong>Arsh Siddique</strong>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="js/site-config.js"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script src="js/protection.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+rules_version = '2';
+
+// ============================================
+// FlickZZ Resources - Firestore Security Rules
+// Owner: Arsh Siddique © 2026
+// ============================================
+//
+// IMPORTANT: Replace ADMIN_EMAILS list below with your admin emails
+// These rules enforce:
+//  - Only authenticated users can read resources
+//  - Only admins (by email) can create/update/delete resources
+//  - Users can manage their own profile, ratings, downloads, comments
+//  - Admins can moderate all content
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the caller signed in?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: is the caller an admin (by email)?
+    //
+    // ⚠️ IMPORTANT — REPLACE THE EMAILS BELOW WITH YOUR OWNER EMAIL.
+    // This list MUST match the OWNER_EMAIL + ADMIN_EMAILS values in
+    // js/firebase-config.js. Use lowercase. You can have just ONE entry
+    // (recommended for max security — only YOU are admin).
+    //
+    // Example:
+    //   return isSignedIn() && request.auth.token.email in [
+    //     'your-real-email@gmail.com'
+    //   ];
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email in [
+        'your-email@gmail.com'   // ← REPLACE with YOUR Gmail (same as OWNER_EMAIL)
+        // 'co-admin@gmail.com'  // ← (optional) extra admin, uncomment if needed
+      ];
+    }
+
+    // ==== USERS ====
+    match /users/{userId} {
+      // Anyone signed in may read a basic user profile (for comments display)
+      allow read: if isSignedIn();
+      // Users can create/update their own doc; admins can modify any
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ==== RESOURCES ====
+    match /resources/{resourceId} {
+      // Public listing visible to everyone, details optional.
+      // Keep authenticated-read if you want to hide from anonymous users.
+      allow read: if true;
+
+      // Only admins can upload / edit / delete resources
+      allow create, update, delete: if isAdmin();
+
+      // ==== RATINGS (sub-collection) ====
+      match /ratings/{userId} {
+        allow read: if true;
+        // A user may only create/update/delete their OWN rating
+        allow write: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      // ==== LIKES (sub-collection) — one doc per user (docId == userId) ====
+      match /likes/{userId} {
+        allow read: if true;
+        // User can only like/unlike as themselves
+        allow create, delete: if isSignedIn() && request.auth.uid == userId;
+        allow update: if false;
+      }
+
+      // ==== COMMENTS (sub-collection, supports threaded replies) ====
+      match /comments/{commentId} {
+        allow read: if true;
+        // Any signed-in user can post a comment (as themselves)
+        // Optional parentId field (string|null) enables replies
+        allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+        // User can delete their own comment; admins can delete any
+        allow delete: if isSignedIn() && (
+          resource.data.userId == request.auth.uid || isAdmin()
+        );
+        // No update (users can only post/delete their own comments)
+        allow update: if isAdmin();
+      }
+    }
+
+    // ==== DOWNLOADS TRACKING ====
+    match /downloads/{downloadId} {
+      // User can only create their own download record
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Users can read their own; admins can read all
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // ==== SITE SETTINGS (owner-editable, world-readable) ====
+    match /settings/{docId} {
+      allow read: if true;            // public read so frontend can apply settings
+      allow write: if isAdmin();      // only admin/owner can change
+    }
+
+    // ==== FEEDBACK (Home page testimonials) ====
+    // Anyone can read approved feedback (home page).
+    // Only signed-in users can create their own feedback.
+    // Only admins can update (hide/show) or delete.
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.hidden == false;
+      allow update, delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
