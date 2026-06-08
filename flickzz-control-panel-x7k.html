@@ -42,14 +42,15 @@
         </div>
     </div>
 
-    <!-- =========== ACCESS DENIED =========== -->
+    <!-- =========== ACCESS DENIED (Not Owner) =========== -->
     <div id="accessDenied" class="hidden">
         <section class="section" style="padding: 6rem 1.5rem;">
             <div class="container">
                 <div class="empty-state">
                     <i class="fas fa-ban" style="color:var(--danger);"></i>
                     <h3>Access Denied</h3>
-                    <p>This area is restricted to the platform owner only.<br>Your activity has been logged.</p>
+                    <p>This area is restricted to the platform owner only.<br>
+                    Your activity has been logged.</p>
                     <a href="index.html" class="btn btn-primary">Return to Home</a>
                 </div>
             </div>
@@ -72,6 +73,8 @@
 
     <!-- =========== ADMIN PANEL =========== -->
     <div id="adminContent" class="hidden">
+
+        <!-- Sidebar -->
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="admin-brand">
                 <img src="images/logo.png" alt="FlickZZ" class="logo-img">
@@ -80,19 +83,43 @@
                     <div class="admin-brand-tag"><i class="fas fa-crown"></i> Owner Panel</div>
                 </div>
             </div>
+
             <nav class="admin-nav">
-                <button class="admin-nav-item active" data-tab="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</button>
-                <button class="admin-nav-item" data-tab="upload"><i class="fas fa-cloud-upload-alt"></i> Upload Resource</button>
-                <button class="admin-nav-item" data-tab="manage"><i class="fas fa-folder-open"></i> Manage Resources</button>
-                <button class="admin-nav-item" data-tab="users"><i class="fas fa-users"></i> Users</button>
-                <button class="admin-nav-item" data-tab="comments"><i class="fas fa-comment-dots"></i> Comments</button>
-                <button class="admin-nav-item" data-tab="feedback"><i class="fas fa-star-half-stroke"></i> Feedback</button>
-                <button class="admin-nav-item" data-tab="downloads"><i class="fas fa-chart-line"></i> Downloads</button>
-                <button class="admin-nav-item" data-tab="settings"><i class="fas fa-sliders"></i> Site Settings</button>
+                <button class="admin-nav-item active" data-tab="dashboard">
+                    <i class="fas fa-gauge-high"></i> <span>Dashboard</span>
+                </button>
+                <button class="admin-nav-item" data-tab="upload">
+                    <i class="fas fa-cloud-upload-alt"></i> <span>Upload Resource</span>
+                </button>
+                <button class="admin-nav-item" data-tab="manage">
+                    <i class="fas fa-folder-open"></i> <span>Manage Resources</span>
+                </button>
+                <button class="admin-nav-item" data-tab="users">
+                    <i class="fas fa-users"></i> <span>Users</span>
+                </button>
+                <button class="admin-nav-item" data-tab="comments">
+                    <i class="fas fa-comment-dots"></i> <span>Comments</span>
+                </button>
+                <button class="admin-nav-item" data-tab="feedback">
+                    <i class="fas fa-star-half-stroke"></i> <span>Feedback</span>
+                </button>
+                <button class="admin-nav-item" data-tab="downloads">
+                    <i class="fas fa-chart-line"></i> <span>Downloads</span>
+                </button>
+                <button class="admin-nav-item" data-tab="settings">
+                    <i class="fas fa-sliders"></i> <span>Site Settings</span>
+                </button>
+
                 <div class="admin-nav-divider"></div>
-                <a class="admin-nav-item" href="index.html"><i class="fas fa-home"></i> View Site</a>
-                <button class="admin-nav-item" id="adminLogoutBtn"><i class="fas fa-right-from-bracket"></i> Logout</button>
+
+                <a class="admin-nav-item" href="index.html">
+                    <i class="fas fa-home"></i> <span>View Site</span>
+                </a>
+                <button class="admin-nav-item" id="adminLogoutBtn">
+                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
+                </button>
             </nav>
+
             <div class="admin-sidebar-footer">
                 <div class="admin-user-info">
                     <div class="admin-user-avatar"><i class="fas fa-crown"></i></div>
@@ -104,46 +131,330 @@
             </div>
         </aside>
 
+        <!-- Mobile Top Bar -->
         <header class="admin-topbar">
             <button class="admin-menu-toggle" id="adminMenuToggle"><i class="fas fa-bars"></i></button>
             <div class="admin-topbar-title" id="adminTabTitle">Dashboard</div>
             <button class="admin-menu-toggle" id="adminThemeBtn"><i class="fas fa-moon"></i></button>
         </header>
 
+        <!-- Main Content -->
         <main class="admin-main">
-            <!-- Dashboard Tab (content similar to original) -->
+
+            <!-- DASHBOARD TAB -->
             <div class="admin-tab-content active" id="tab-dashboard">
                 <div class="admin-page-header">
                     <h1><i class="fas fa-gauge-high"></i> Dashboard</h1>
-                    <p>Welcome back, <strong id="dashGreetName">Owner</strong>.</p>
+                    <p>Welcome back, <strong id="dashGreetName">Owner</strong>. Here's what's happening on FlickZZ today.</p>
                 </div>
-                <div class="dashboard-stats">...</div>
-                <div class="dashboard-grid">...</div>
+                <div class="dashboard-stats">
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon bg-primary"><i class="fas fa-box"></i></div>
+                        <div>
+                            <div class="dash-stat-num" id="totalResources">0</div>
+                            <div class="dash-stat-label">Total Resources</div>
+                        </div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon bg-success"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="dash-stat-num" id="totalUsers">0</div>
+                            <div class="dash-stat-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon bg-warn"><i class="fas fa-download"></i></div>
+                        <div>
+                            <div class="dash-stat-num" id="totalDownloads">0</div>
+                            <div class="dash-stat-label">Total Downloads</div>
+                        </div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-icon bg-danger"><i class="fas fa-star-half-stroke"></i></div>
+                        <div>
+                            <div class="dash-stat-num" id="totalFeedback">0</div>
+                            <div class="dash-stat-label">Feedback</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="admin-card">
+                        <h3><i class="fas fa-chart-bar"></i> Top Resources</h3>
+                        <div id="topResourcesList" class="top-list"></div>
+                    </div>
+                    <div class="admin-card">
+                        <h3><i class="fas fa-user-plus"></i> Recent Users</h3>
+                        <div id="recentUsersList" class="top-list"></div>
+                    </div>
+                </div>
             </div>
-            <!-- Upload Tab (with external URL field) -->
+
+            <!-- UPLOAD TAB (with External URL field) -->
             <div class="admin-tab-content" id="tab-upload">
+                <div class="admin-page-header">
+                    <h1 id="formTitle"><i class="fas fa-cloud-upload-alt"></i> Upload New Resource</h1>
+                    <p>Add a plugin, mod, modpack, config, or tool to your library.</p>
+                </div>
                 <div class="admin-card">
                     <form id="uploadForm" class="admin-form">
-                        <input type="hidden" id="resourceId">
+                        <input type="hidden" id="resourceId" value="">
                         <div class="form-row">
-                            <div class="form-group"><label>Title *</label><input type="text" id="title" required></div>
-                            <div class="form-group"><label>Category *</label><select id="category"><option value="">Select</option><option value="plugin">Plugin</option><option value="mod">Mod</option><option value="modpack">Modpack</option><option value="config">Config</option><option value="tool">Tool</option></select></div>
+                            <div class="form-group">
+                                <label>Title *</label>
+                                <input type="text" id="title" required placeholder="Awesome Plugin">
+                            </div>
+                            <div class="form-group">
+                                <label>Category *</label>
+                                <select id="category" required>
+                                    <option value="">Select category</option>
+                                    <option value="plugin">Plugin</option>
+                                    <option value="mod">Mod</option>
+                                    <option value="modpack">Modpack</option>
+                                    <option value="config">Config</option>
+                                    <option value="tool">Tool</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group"><label>Short Tagline</label><input type="text" id="tagline"></div>
-                        <div class="form-group"><label>Description *</label><textarea id="description" rows="5" required></textarea></div>
-                        <div class="form-row"><div class="form-group"><label>Version</label><input type="text" id="version"></div><div class="form-group"><label>MC Version</label><input type="text" id="mcVersion"></div></div>
-                        <div class="form-group"><label>Thumbnail Image URL</label><input type="url" id="thumbnail"></div>
-                        <!-- External URL Field -->
-                        <div class="form-group"><label>External File URL (MediaFire/Google Drive) *</label><input type="url" id="externalFileUrl" placeholder="https://www.mediafire.com/file/.../plugin.jar"></div>
-                        <div class="form-group"><label class="checkbox"><input type="checkbox" id="featured"> Mark as Featured</label></div>
-                        <div class="form-actions"><button type="button" class="btn btn-ghost" id="cancelEditBtn">Reset</button><button type="submit" class="btn btn-primary" id="submitResourceBtn">Upload Resource</button></div>
+                        <div class="form-group">
+                            <label>Short Tagline</label>
+                            <input type="text" id="tagline" placeholder="One-line summary" maxlength="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Description *</label>
+                            <textarea id="description" rows="5" required placeholder="Detailed description..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Version</label>
+                                <input type="text" id="version" placeholder="1.0.0">
+                            </div>
+                            <div class="form-group">
+                                <label>MC Version</label>
+                                <input type="text" id="mcVersion" placeholder="1.20.x">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Thumbnail Image URL (optional)</label>
+                            <input type="url" id="thumbnail" placeholder="https://...">
+                        </div>
+                        <!-- NEW EXTERNAL FILE URL FIELD -->
+                        <div class="form-group">
+                            <label>External File URL (MediaFire / Google Drive direct link) *</label>
+                            <input type="url" id="externalFileUrl" placeholder="https://www.mediafire.com/file/.../plugin.jar">
+                            <small class="hint">Paste direct download link. File upload option is now disabled. Use this field only.</small>
+                        </div>
+                        <!-- OLD FILE UPLOAD (disabled/hidden) -->
+                        <div class="form-group" style="display: none;">
+                            <label>Resource File <span id="fileRequired">*</span></label>
+                            <div class="file-upload">
+                                <input type="file" id="resourceFile" accept=".jar,.zip,.rar,.yml,.json,.txt,.mrpack">
+                                <label for="resourceFile" class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span id="fileLabel">Click to upload or drag file here</span>
+                                </label>
+                            </div>
+                            <small class="hint">Accepted: .jar .zip .rar .yml .json .txt .mrpack (max 50MB)</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" id="featured">
+                                <span>Mark as Featured (shows on home page)</span>
+                            </label>
+                        </div>
+                        <div class="upload-progress hidden" id="uploadProgress">
+                            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-ghost" id="cancelEditBtn">Reset</button>
+                            <button type="submit" class="btn btn-primary" id="submitResourceBtn">
+                                <i class="fas fa-upload"></i> Upload Resource
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
-            <!-- Other tabs similarly... but keep minimal for brevity, full code is in earlier message -->
+
+            <!-- MANAGE RESOURCES TAB -->
+            <div class="admin-tab-content" id="tab-manage">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-folder-open"></i> Manage Resources</h1>
+                    <p>Edit, feature, or delete existing resources.</p>
+                </div>
+                <div class="admin-card">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="adminSearch" placeholder="Search resources by title...">
+                        </div>
+                    </div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr><th>Title</th><th>Category</th><th>Downloads</th><th>Featured</th><th>Created</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="adminResourcesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS TAB -->
+            <div class="admin-tab-content" id="tab-users">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-users"></i> User Management</h1>
+                    <p>View all registered users, ban/unban, or grant admin privileges.</p>
+                </div>
+                <div class="admin-card">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="usersSearch" placeholder="Search by email or name...">
+                        </div>
+                    </div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                            <tbody id="usersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMENTS TAB -->
+            <div class="admin-tab-content" id="tab-comments">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-comment-dots"></i> Comments Moderation</h1>
+                    <p>All comments across every resource. Delete inappropriate ones.</p>
+                </div>
+                <div class="admin-card">
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="commentsSearch" placeholder="Search comments...">
+                        </div>
+                    </div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead><tr><th>User</th><th>Comment</th><th>Resource</th><th>Date</th><th>Actions</th></tr></thead>
+                            <tbody id="commentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEEDBACK TAB -->
+            <div class="admin-tab-content" id="tab-feedback">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-star-half-stroke"></i> Feedback Moderation</h1>
+                    <p>Hide inappropriate feedback from the home page or delete permanently.</p>
+                </div>
+                <div class="admin-card">
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead><tr><th>User</th><th>Rating</th><th>Feedback</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                            <tbody id="adminFeedbackTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DOWNLOADS ANALYTICS TAB -->
+            <div class="admin-tab-content" id="tab-downloads">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-chart-line"></i> Downloads Analytics</h1>
+                    <p>Recent download activity across the platform.</p>
+                </div>
+                <div class="admin-card">
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead><tr><th>User</th><th>Resource</th><th>Date</th></tr></thead>
+                            <tbody id="downloadsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SITE SETTINGS TAB -->
+            <div class="admin-tab-content" id="tab-settings">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-sliders"></i> Site Settings</h1>
+                    <p>Update social links, branding, and site-wide content. Changes apply instantly to all pages.</p>
+                </div>
+                <div class="admin-card">
+                    <form id="settingsForm" class="admin-form">
+                        <h3><i class="fab fa-discord" style="color:#5865F2;"></i> Discord</h3>
+                        <div class="form-group">
+                            <label>Discord Invite URL</label>
+                            <input type="url" id="setDiscord" placeholder="https://discord.gg/...">
+                        </div>
+                        <h3 style="margin-top:2rem;"><i class="fab fa-youtube" style="color:#FF0000;"></i> YouTube</h3>
+                        <div class="form-group">
+                            <label>YouTube Channel URL</label>
+                            <input type="url" id="setYoutube" placeholder="https://youtube.com/@...">
+                        </div>
+                        <h3 style="margin-top:2rem;"><i class="fas fa-bullhorn"></i> Site Announcement</h3>
+                        <div class="form-group">
+                            <label>Announcement Banner (leave blank to hide)</label>
+                            <input type="text" id="setAnnouncement" placeholder="🎉 New plugins added! Check them out." maxlength="200">
+                        </div>
+                        <h3 style="margin-top:2rem;"><i class="fas fa-pen-fancy"></i> Hero Section</h3>
+                        <div class="form-group">
+                            <label>Hero Headline</label>
+                            <input type="text" id="setHeroTitle" placeholder="Level Up Your Minecraft Server Experience" maxlength="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Hero Subtitle</label>
+                            <textarea id="setHeroSubtitle" rows="2" maxlength="300" placeholder="Download free, curated plugins, mods, modpacks, configs, and tools."></textarea>
+                        </div>
+                        <h3 style="margin-top:2rem;"><i class="fas fa-toggle-on"></i> Features</h3>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" id="setFeedbackEnabled" checked>
+                                <span>Show feedback section on home page</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" id="setRegistrationOpen" checked>
+                                <span>Allow new user registrations</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" id="setMaintenance">
+                                <span>🚧 Maintenance Mode (only owner can access site)</span>
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Owner Info Card -->
+                <div class="admin-card" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-fingerprint"></i> Your Owner Identity</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1rem;">Paste your UID below into <code>js/firebase-config.js</code> → <code>OWNER_UID</code> for maximum security.</p>
+                    <div class="owner-info-row">
+                        <div>
+                            <label>Owner Email</label>
+                            <div class="info-value" id="ownerEmailDisplay">—</div>
+                        </div>
+                        <div>
+                            <label>Owner UID <button class="copy-btn" id="copyUidBtn" title="Copy"><i class="fas fa-copy"></i></button></label>
+                            <div class="info-value mono" id="ownerUidDisplay">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
+
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
     <script type="module" src="js/site-config.js"></script>
     <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/auth.js"></script>
