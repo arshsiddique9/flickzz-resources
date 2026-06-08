@@ -1449,32 +1449,69 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .input-wrap {
     position: relative;
+    display: block;
 }
 
-.input-wrap i:first-child {
+/* Left-side decorative icon (lock/key/envelope) — direct child <i> only,
+   NOT the icon inside the toggle-pass button. */
+.input-wrap > i:first-child {
     position: absolute;
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-dim);
     pointer-events: none;
+    z-index: 2;
+    line-height: 1;
+    font-size: 0.95rem;
 }
 
 .input-wrap input {
+    width: 100%;
     padding-left: 2.75rem !important;
+    padding-right: 3rem !important;   /* leave room for the eye toggle */
 }
 
+/* Eye / show-password toggle button — must be clickable and aligned. */
 .toggle-pass {
     position: absolute;
-    right: 0.75rem;
+    right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
     color: var(--text-dim);
-    padding: 0.5rem;
-    transition: color var(--transition);
+    padding: 0;
+    margin: 0;
+    border-radius: 8px;
+    z-index: 3;                       /* above the input */
+    transition: color var(--transition), background var(--transition);
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.toggle-pass:hover { color: var(--text); }
+.toggle-pass i {
+    pointer-events: none;             /* clicks go to the button, not the <i> */
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.toggle-pass:hover {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.toggle-pass:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
 
 input[type="text"],
 input[type="email"],
