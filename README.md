@@ -15,7 +15,7 @@
 
 FlickZZ Resources is a sleek, fast, and beginner-friendly platform where users sign up, browse, and download Minecraft-related resources. Admins manage all content via a dedicated panel. The entire stack is frontend + Firebase — no servers to maintain.
 
-> 🇮🇳 **Hinglish users:** Step-by-step deployment guide in Hinglish — [**SETUP-HINGLISH.md**](./SETUP-HINGLISH.md)
+> 🇮🇳 **Hinglish users:** Step-by-step deployment guide in Hinglish — [**SETUP-HINGLISH.md But this file was deleted for some reason**](./SETUP-HINGLISH.md)
 
 ### ✨ Completed Features
 
