@@ -782,6 +782,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     transition: transform var(--transition-slow);
 }
 
+/* Smooth resource grid transitions */
+.resource-grid {
+    transition: opacity 0.2s ease;
+}
+
+.resource-grid.loading {
+    opacity: 0.5;
+}
+
 .resource-card:hover .resource-thumb img {
     transform: scale(1.05);
 }
