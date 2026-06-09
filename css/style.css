@@ -784,9 +784,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* Smooth resource grid transitions */
 .resource-grid {
-    transition: opacity 0.2s ease;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    min-height: 350px;
 }
-
 .resource-grid.loading {
     opacity: 0.5;
 }
@@ -872,7 +874,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ========== SKELETON ========== */
 .skeleton-card {
-    aspect-ratio: 4 / 5;
+    height: 330px;
     border-radius: var(--radius-lg);
     background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-hover) 50%, var(--bg-card) 75%);
     background-size: 200% 100%;
