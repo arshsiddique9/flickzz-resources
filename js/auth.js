@@ -1,5 +1,6 @@
 // ============================================
 // FlickZZ Resources - Authentication Module
+// Owner: Arsh Siddique © 2026
 // ============================================
 
 import {
@@ -42,22 +43,17 @@ if (firebaseReady && auth) {
         authState.ready = true;
 
         if (user) {
-            // Ensure user doc exists
             await ensureUserDoc(user);
         }
 
-        // Update UI visibility
         updateAuthUI();
 
-        // Call any pending listeners
         authState.listeners.forEach(cb => cb(authState));
         authState.listeners = [];
 
-        // Dispatch custom event
         window.dispatchEvent(new CustomEvent('authchange', { detail: authState }));
     });
 } else {
-    // Firebase not ready → finish init anyway so UI shows
     authState.ready = true;
     setTimeout(() => {
         updateAuthUI();
@@ -66,7 +62,7 @@ if (firebaseReady && auth) {
     }, 100);
 }
 
-// Ensure a user record exists in Firestore
+// ============ ✅ FIXED: ensureUserDoc with public members counter ============
 async function ensureUserDoc(user) {
     if (!db) return;
     try {
@@ -81,6 +77,15 @@ async function ensureUserDoc(user) {
                 isAdmin: isAdminEmail(user.email),
                 createdAt: serverTimestamp()
             });
+            // Bump the PUBLIC members counter so guests see the real number on the home page.
+            // Imported lazily to avoid circular import with resources-api.js.
+            try {
+                const { bumpPublicMembersCount } = await import('./resources-api.js');
+                await bumpPublicMembersCount();
+            } catch (e) {
+                // Non-fatal — the counter is a cosmetic mirror; user signup itself still succeeded.
+                console.warn('[ensureUserDoc] publicStats bump skipped:', e?.message);
+            }
         }
     } catch (err) {
         console.error("ensureUserDoc error:", err);
@@ -146,7 +151,6 @@ export function updateAuthUI() {
     }
 }
 
-// Require auth (redirects if not logged in)
 export function requireAuth(redirectTo = "login.html") {
     return new Promise((resolve) => {
         onAuthReady((state) => {
@@ -160,7 +164,6 @@ export function requireAuth(redirectTo = "login.html") {
     });
 }
 
-// Require admin
 export function requireAdmin() {
     return new Promise((resolve) => {
         onAuthReady((state) => {
