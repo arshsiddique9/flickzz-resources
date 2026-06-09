@@ -23,16 +23,12 @@ function debounce(fn, delay = 300) {
     debounceTimer = setTimeout(fn, delay);
 }
 
-// ✅ Updated refresh function with smooth transition
+// ✅ FIXED: No more empty boxes glitch
 async function refresh() {
     if (!grid) return;
 
-    // Add loading class for smooth fade
+    // Only add loading class – DO NOT clear the grid content yet
     grid.classList.add('loading');
-    
-    // Show skeletons while loading
-    grid.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
-    empty.classList.add('hidden');
 
     try {
         const items = await listResources({
@@ -41,17 +37,19 @@ async function refresh() {
             search: searchInput.value.trim()
         });
 
+        // Now replace the content after data is ready
         if (!items.length) {
             grid.innerHTML = '';
             empty.classList.remove('hidden');
         } else {
+            empty.classList.add('hidden');
             grid.innerHTML = items.map(renderCard).join('');
         }
     } catch (err) {
         console.error(err);
         grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;">Could not load resources.</p>';
     } finally {
-        // Small delay to ensure new content is painted before removing loading class
+        // Small delay to ensure smooth transition
         setTimeout(() => {
             grid.classList.remove('loading');
         }, 50);
@@ -92,4 +90,5 @@ searchInput.addEventListener('input', () => debounce(refresh, 300));
 categoryFilter.addEventListener('change', refresh);
 sortFilter.addEventListener('change', refresh);
 
+// Initial load
 refresh();
