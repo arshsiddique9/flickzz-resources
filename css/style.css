@@ -745,6 +745,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
+    transition: opacity 0.2s ease;
 }
 
 .resource-card {
@@ -755,6 +756,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     transition: all var(--transition);
     display: flex;
     flex-direction: column;
+}
+.resource-grid.loading {
+    opacity: 0.5;
 }
 
 .resource-card:hover {
