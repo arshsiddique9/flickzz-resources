@@ -1,6 +1,6 @@
 // ============================================
 // FlickZZ Resources - Firestore Data API
-// Handles resource CRUD, ratings, comments, downloads
+// Owner: Arsh Siddique © 2026
 // ============================================
 
 import {
@@ -34,6 +34,7 @@ const DEMO_RESOURCES = [
 
 // ============ RESOURCE CRUD ============
 
+// ✅ FIXED: listResources with client-side filtering & fallback
 export async function listResources({ category, sort = 'newest', search = '', max = 100, featuredOnly = false } = {}) {
     if (!firebaseReady || !db) {
         // Demo fallback
@@ -48,26 +49,41 @@ export async function listResources({ category, sort = 'newest', search = '', ma
         return items.slice(0, max);
     }
 
+    // Strategy: Fetch ALL resources once with just ordering, then filter client-side.
+    // Why? Firestore needs a composite index for (where + orderBy) combinations.
+    // For a small-to-medium catalog (<500 items) client filtering is fast AND avoids
+    // the index-missing failure that returned empty results before.
     try {
         const colRef = collection(db, 'resources');
-        const constraints = [];
-        if (category) constraints.push(where('category', '==', category));
-        if (featuredOnly) constraints.push(where('featured', '==', true));
 
-        // Sorting at query level
+        // Pick a single orderBy that always works without composite indexes
         let orderField = 'createdAt';
         let orderDir = 'desc';
         if (sort === 'popular') orderField = 'downloads';
         else if (sort === 'name') { orderField = 'title'; orderDir = 'asc'; }
 
-        constraints.push(orderBy(orderField, orderDir));
-        constraints.push(limit(max));
+        let snap;
+        try {
+            // Primary query (with orderBy)
+            const q = query(colRef, orderBy(orderField, orderDir), limit(500));
+            snap = await getDocs(q);
+        } catch (idxErr) {
+            // If even the simple orderBy fails (e.g. missing field on legacy docs),
+            // fall back to unordered fetch so the user never sees an empty page.
+            console.warn('[listResources] ordered query failed, falling back to plain fetch:', idxErr?.message);
+            snap = await getDocs(colRef);
+        }
 
-        const q = query(colRef, ...constraints);
-        const snap = await getDocs(q);
         let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // Client-side search (Firestore doesn't support full-text natively)
+        // ===== Client-side filtering (case-insensitive, robust) =====
+        if (category) {
+            const cat = String(category).toLowerCase().trim();
+            items = items.filter(r => String(r.category || '').toLowerCase().trim() === cat);
+        }
+        if (featuredOnly) {
+            items = items.filter(r => r.featured === true);
+        }
         if (search) {
             const s = search.toLowerCase();
             items = items.filter(r =>
@@ -77,12 +93,10 @@ export async function listResources({ category, sort = 'newest', search = '', ma
             );
         }
 
-        // Rating-based sort (client-side)
-        if (sort === 'rating') {
-            items.sort((a, b) => avgRating(b) - avgRating(a));
-        }
+        // ===== Client-side sorting (so we honor the requested sort even after fallback) =====
+        items = sortItems(items, sort);
 
-        return items;
+        return items.slice(0, max);
     } catch (err) {
         console.error('listResources error:', err);
         return [];
@@ -146,7 +160,7 @@ export async function deleteResource(id, filePath) {
     await deleteDoc(doc(db, 'resources', id));
 }
 
-// ============ FILE UPLOAD ============
+// ============ FILE UPLOAD (kept for reference, but not used with external URLs) ============
 export function uploadResourceFile(file, onProgress) {
     return new Promise((resolve, reject) => {
         if (!firebaseReady || !storage) {
@@ -247,9 +261,6 @@ export async function submitRating(resourceId, userId, value, meta = {}) {
 export async function getUserRatingsCount(userId) {
     if (!firebaseReady || !db || !userId) return 0;
     try {
-        // Rating docs are sub-collections keyed by userId — we can't easily count across collections
-        // Instead, query all resources and count ratings where id == userId. Alternative: keep a userRatings collection.
-        // For simplicity, use a flat userRatings collection.
         const q = query(collection(db, 'userRatings'), where('userId', '==', userId));
         const snap = await getDocs(q);
         return snap.size;
@@ -320,30 +331,60 @@ export async function getPlatformStats() {
 }
 
 // ============ PUBLIC LIVE STATS (Home page) ============
-// Returns real-time counts: resources, total downloads (sum), registered members.
-// Uses Firestore aggregation if available, falls back to counting docs.
+// ✅ FIXED: handles guest read permissions without breaking the page
 export async function getLiveStats() {
     if (!firebaseReady || !db) {
         return { resources: 0, downloads: 0, members: 0 };
     }
+
+    const result = { resources: 0, downloads: 0, members: 0 };
+
+    // 1) Resources + downloads (PUBLIC — works for guests)
     try {
-        const [resSnap, usrSnap] = await Promise.all([
-            getDocs(collection(db, 'resources')),
-            getDocs(collection(db, 'users'))
-        ]);
-        // Sum all download counts across resources (true real-time number)
+        const resSnap = await getDocs(collection(db, 'resources'));
+        result.resources = resSnap.size;
         let totalDownloads = 0;
         resSnap.docs.forEach(d => {
             totalDownloads += (d.data().downloads || 0);
         });
-        return {
-            resources: resSnap.size,
-            downloads: totalDownloads,
-            members: usrSnap.size
-        };
+        result.downloads = totalDownloads;
     } catch (err) {
-        console.warn('getLiveStats error:', err);
-        return { resources: 0, downloads: 0, members: 0 };
+        console.warn('[getLiveStats] resources fetch failed:', err?.message);
+    }
+
+    // 2) Members count from /users (PRIVATE for guests).
+    //    First try direct read — works for signed-in users.
+    //    If that fails (guest), fall back to a public /publicStats/members counter
+    //    that we maintain on signup. If that also fails, leave 0 — never break the page.
+    try {
+        const usrSnap = await getDocs(collection(db, 'users'));
+        result.members = usrSnap.size;
+    } catch {
+        try {
+            const memDoc = await getDoc(doc(db, 'publicStats', 'members'));
+            if (memDoc.exists()) {
+                result.members = memDoc.data().count || 0;
+            }
+        } catch {
+            // Stay 0 silently — don't pollute the console for guests.
+        }
+    }
+
+    return result;
+}
+
+// Increment the public members counter (called once on every successful signup).
+// Safe to fail silently (it's just a public display number).
+export async function bumpPublicMembersCount() {
+    if (!firebaseReady || !db) return;
+    try {
+        await setDoc(
+            doc(db, 'publicStats', 'members'),
+            { count: increment(1), updatedAt: serverTimestamp() },
+            { merge: true }
+        );
+    } catch (err) {
+        console.warn('[bumpPublicMembersCount] failed:', err?.message);
     }
 }
 
