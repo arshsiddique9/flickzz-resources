@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/features.css">
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="auth-page">
     <div class="auth-bg">
@@ -46,6 +48,11 @@
                         <button type="button" class="toggle-pass" data-target="password"><i class="fas fa-eye"></i></button>
                     </div>
                 </div>
+
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAADiBJBn36bVOyOVZ" data-callback="onTurnstileSuccess"></div>
+                <input type="hidden" id="cfToken" name="cf-turnstile-response">
+
                 <button type="submit" class="btn btn-primary btn-block" id="loginSubmit">
                     <span>Log In</span>
                 </button>
@@ -69,5 +76,11 @@
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/login.js"></script>
     <script src="js/protection.js"></script>
+    <script>
+        // Turnstile success callback – store token in hidden input
+        window.onTurnstileSuccess = function(token) {
+            document.getElementById('cfToken').value = token;
+        };
+    </script>
 </body>
 </html>
