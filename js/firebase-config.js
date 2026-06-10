@@ -3,24 +3,24 @@
 // Owner: Arsh Siddique © 2026
 // ============================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-
-// All values come from Vercel Environment Variables (no hardcoding)
+// 🔧 Your real Firebase config (safe to be public)
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+    apiKey: "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0",
+    authDomain: "flickzz-resources.firebaseapp.com",
+    projectId: "flickzz-resources",
+    storageBucket: "flickzz-resources.firebasestorage.app",
+    messagingSenderId: "554417592538",
+    appId: "1:554417592538:web:be87ac778712df5c032de3"
 };
 
-export const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL;
-export const OWNER_UID = ""; // Optional, keep as is or set later
-export const ADMIN_ACCESS_CODE = process.env.NEXT_PUBLIC_ADMIN_ACCESS_CODE;
+export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
+export const OWNER_UID = ""; // optional, baad mein daal diyo
+
+// 🔐 Admin access code – Vercel env var se nahi, direct yahan rakh.
+// Agar tu chahe toh isko bhi env var mein rakh sakta hai, 
+// lekin uske liye serverless function banana padega (thoda complicated).
+export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
+
 export const ADMIN_EMAILS = [];
 
 // ... rest of your file (initialize Firebase, isAdminEmail, isOwner etc.)
