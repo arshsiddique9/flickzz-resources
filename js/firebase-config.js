@@ -5,12 +5,12 @@
 
 // 🔧 Your real Firebase config (safe to be public)
 const firebaseConfig = {
-    apiKey: "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0",
-    authDomain: "flickzz-resources.firebaseapp.com",
-    projectId: "flickzz-resources",
-    storageBucket: "flickzz-resources.firebasestorage.app",
-    messagingSenderId: "554417592538",
-    appId: "1:554417592538:web:be87ac778712df5c032de3"
+  apiKey: "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0",
+  authDomain: "flickzz-resources.firebaseapp.com",
+  projectId: "flickzz-resources",
+  storageBucket: "flickzz-resources.firebasestorage.app",
+  messagingSenderId: "554417592538",
+  appId: "1:554417592538:web:be87ac778712df5c032de3"
 };
 
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
