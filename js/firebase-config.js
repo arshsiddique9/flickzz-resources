@@ -22,7 +22,7 @@ const firebaseConfig = {
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
 export const OWNER_UID = ""; // Set after first login
 export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
-export const ADMIN_EMAILS = [officialflickzzyt@gmail.com];
+export const ADMIN_EMAILS = [];
 
 // ============================================
 // Initialize Firebase (Fixed)
