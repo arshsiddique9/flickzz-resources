@@ -19,10 +19,10 @@ const firebaseConfig = {
 };
 
 // 👑 OWNER & ADMIN CONFIGURATION
-export const OWNER_EMAIL = "toxictruthx1@gmail.com";
+export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
 export const OWNER_UID = ""; // Set after first login
-export const ADMIN_ACCESS_CODE = "FlickZZ@Arsh2026#Secure";
-export const ADMIN_EMAILS = [];
+export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
+export const ADMIN_EMAILS = [officialflickzzyt@gmail.com];
 
 // ============================================
 // Initialize Firebase (Fixed)
