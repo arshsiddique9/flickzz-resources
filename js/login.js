@@ -1,4 +1,4 @@
-// Login page script
+// Login page script with Cloudflare Turnstile
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 
@@ -14,8 +14,43 @@ onAuthReady((state) => {
 const form = document.getElementById('loginForm');
 const submitBtn = document.getElementById('loginSubmit');
 
+// Turnstile success callback already defined in HTML (onTurnstileSuccess)
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Get CAPTCHA token from hidden input
+    const token = document.getElementById('cfToken').value;
+    if (!token) {
+        showToast('Please complete the security check', 'warning');
+        return;
+    }
+
+    setLoading(submitBtn, true, 'Verifying...');
+
+    // Step 1: Verify CAPTCHA token with backend
+    let verified = false;
+    try {
+        const res = await fetch('/api/turnstile-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Verification failed');
+        verified = true;
+    } catch (err) {
+        showToast(err.message || 'Security check failed. Please refresh and try again.', 'error');
+        setLoading(submitBtn, false, 'Log In');
+        // Reset CAPTCHA widget
+        if (window.turnstile) turnstile.reset();
+        document.getElementById('cfToken').value = '';
+        return;
+    }
+
+    if (!verified) return;
+
+    // Step 2: Firebase login
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
@@ -31,6 +66,9 @@ form.addEventListener('submit', async (e) => {
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
         setLoading(submitBtn, false, 'Log In');
+        // Reset CAPTCHA on failure
+        if (window.turnstile) turnstile.reset();
+        document.getElementById('cfToken').value = '';
     }
 });
 
