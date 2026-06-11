@@ -19,9 +19,7 @@ const firebaseConfig = {
 };
 
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
-export const OWNER_UID = ""; // optional, baad mein daal diyo
-
-// 🔐 Admin access code – direct yahan rakh (ya baad mein env var mein daal sakta hai)
+export const OWNER_UID = "";
 export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
 export const ADMIN_EMAILS = [];
 
@@ -46,7 +44,7 @@ try {
 export { app, auth, db, storage, firebaseReady };
 
 // ============================================
-// Admin verification helpers
+// Admin helpers
 // ============================================
 export function isAdminEmail(email) {
     if (!email) return false;
