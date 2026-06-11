@@ -1,28 +1,29 @@
-// Login page script with Cloudflare Turnstile + Forgot Password
+// Login page script with Cloudflare Turnstile + Email Verified Check
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth } from "./firebase-config.js";
 
-// Redirect if already logged in
+// Redirect if already logged in and verified
 onAuthReady((state) => {
-    if (state.user) {
+    if (state.user && state.user.emailVerified) {
         const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
         sessionStorage.removeItem('redirectAfterLogin');
         window.location.href = redirect;
+    } else if (state.user && !state.user.emailVerified) {
+        showToast('Please verify your email first. Check your inbox for 6-digit code.', 'warning');
+        // Optionally sign out
+        auth.signOut();
     }
 });
 
 const form = document.getElementById('loginForm');
 const submitBtn = document.getElementById('loginSubmit');
 
-// Turnstile success callback already defined in HTML (onTurnstileSuccess)
-
-// ========== LOGIN SUBMIT ==========
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Get CAPTCHA token from hidden input
+    // CAPTCHA check (same as before)
     const token = document.getElementById('cfToken').value;
     if (!token) {
         showToast('Please complete the security check', 'warning');
@@ -31,7 +32,6 @@ form.addEventListener('submit', async (e) => {
 
     setLoading(submitBtn, true, 'Verifying...');
 
-    // Step 1: Verify CAPTCHA token with backend
     let verified = false;
     try {
         const res = await fetch('/api/turnstile-verify', {
@@ -43,9 +43,8 @@ form.addEventListener('submit', async (e) => {
         if (!res.ok) throw new Error(data.error || 'Verification failed');
         verified = true;
     } catch (err) {
-        showToast(err.message || 'Security check failed. Please refresh and try again.', 'error');
+        showToast(err.message || 'Security check failed', 'error');
         setLoading(submitBtn, false, 'Log In');
-        // Reset CAPTCHA widget
         if (window.turnstile) turnstile.reset();
         document.getElementById('cfToken').value = '';
         return;
@@ -53,13 +52,24 @@ form.addEventListener('submit', async (e) => {
 
     if (!verified) return;
 
-    // Step 2: Firebase login
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
     setLoading(submitBtn, true, 'Logging in...');
     try {
-        await signInEmail({ email, password });
+        const userCred = await signInEmail({ email, password });
+        const user = userCred.user;
+
+        // ✅ Check if email is verified
+        if (!user.emailVerified) {
+            showToast('Please verify your email before logging in. Check your inbox for 6-digit code.', 'warning');
+            await auth.signOut();
+            setLoading(submitBtn, false, 'Log In');
+            if (window.turnstile) turnstile.reset();
+            document.getElementById('cfToken').value = '';
+            return;
+        }
+
         showToast('Welcome back! Redirecting...', 'success');
         setTimeout(() => {
             const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
@@ -69,16 +79,21 @@ form.addEventListener('submit', async (e) => {
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
         setLoading(submitBtn, false, 'Log In');
-        // Reset CAPTCHA on failure
         if (window.turnstile) turnstile.reset();
         document.getElementById('cfToken').value = '';
     }
 });
 
-// ========== GOOGLE LOGIN ==========
+// Google login check
 document.getElementById('googleLoginBtn').addEventListener('click', async () => {
     try {
-        await signInGoogle();
+        const userCred = await signInGoogle();
+        const user = userCred.user;
+        if (!user.emailVerified) {
+            showToast('Please verify your email first.', 'warning');
+            await auth.signOut();
+            return;
+        }
         showToast('Welcome! Redirecting...', 'success');
         setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
     } catch (err) {
@@ -86,18 +101,18 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
     }
 });
 
-// ========== FORGOT PASSWORD ==========
+// Forgot password
 document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
     if (!email) {
-        showToast('Please enter your email address first', 'warning');
+        showToast('Enter your email address first', 'warning');
         return;
     }
     setLoading(submitBtn, true, 'Sending reset link...');
     try {
         await sendPasswordResetEmail(auth, email);
-        showToast('Password reset link sent! Check your inbox/spam folder.', 'success');
+        showToast('Password reset link sent!', 'success');
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
     } finally {
@@ -105,10 +120,7 @@ document.getElementById('forgotPasswordLink').addEventListener('click', async (e
     }
 });
 
-// ========== HELPER ==========
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
-    btn.innerHTML = loading
-        ? '<span class="spinner"></span> ' + text
-        : '<span>' + text + '</span>';
+    btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
 }
