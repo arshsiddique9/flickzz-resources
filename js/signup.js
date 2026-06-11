@@ -1,22 +1,30 @@
-// Signup page script with Email Verification
+// Signup page script with 6-digit email verification via Brevo
 import { signUpEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 import { getAuth, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 onAuthReady((state) => {
     if (state.user && state.user.emailVerified) {
-        // Already verified user goes to dashboard
         window.location.href = 'dashboard.html';
     } else if (state.user && !state.user.emailVerified) {
-        // User exists but not verified – show verification message
-        showToast('Please verify your email first. Check your inbox.', 'warning');
-        // Optional: redirect to a "verify email" page
+        showToast('Please verify your email. Check your inbox for 6-digit code.', 'warning');
     }
 });
 
 const form = document.getElementById('signupForm');
 const submitBtn = document.getElementById('signupSubmit');
+
+async function sendVerificationCode(email, code) {
+    const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+    });
+    if (!response.ok) throw new Error('Failed to send verification email');
+    return await response.json();
+}
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -34,19 +42,30 @@ form.addEventListener('submit', async (e) => {
     setLoading(submitBtn, true, 'Creating account...');
 
     try {
-        // Step 1: Create user
+        // Create user
         const userCred = await signUpEmail({ email, password, displayName });
         const user = userCred.user;
 
-        // Step 2: Send email verification
-        await sendEmailVerification(user);
+        // Generate 6-digit code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         
-        showToast('Account created! Verification email sent. Please verify to login.', 'success');
+        // Store code in Firestore (expires in 1 hour)
+        await setDoc(doc(db, 'emailVerifications', user.uid), {
+            code: verificationCode,
+            email: email,
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+        });
+
+        // Send email via Brevo
+        await sendVerificationCode(email, verificationCode);
         
-        // Step 3: Redirect to login page after 3 seconds
+        showToast('Account created! Verification email sent with 6-digit code.', 'success');
+        
+        // Redirect to verification page
         setTimeout(() => {
-            window.location.href = 'login.html?pending_verification=1';
-        }, 3000);
+            window.location.href = `verify-email.html?uid=${user.uid}`;
+        }, 2000);
         
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
@@ -57,13 +76,7 @@ form.addEventListener('submit', async (e) => {
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
         const userCred = await signInGoogle();
-        const user = userCred.user;
-        if (user && !user.emailVerified) {
-            // Force send verification for Google sign-in as well
-            await sendEmailVerification(user);
-            showToast('Please verify your email. Check your inbox.', 'warning');
-            await signOut(auth); // sign out until verified
-        }
+        showToast('Google signup successful! Please check email for verification.', 'success');
         setTimeout(() => { window.location.href = 'login.html'; }, 1500);
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
@@ -72,7 +85,5 @@ document.getElementById('googleSignupBtn').addEventListener('click', async () =>
 
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
-    btn.innerHTML = loading
-        ? '<span class="spinner"></span> ' + text
-        : '<span>' + text + '</span>';
+    btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
 }
