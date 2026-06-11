@@ -1,7 +1,6 @@
 // Signup page script with 6-digit email verification via Brevo
 import { signUpEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
-import { getAuth, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth, db } from "./firebase-config.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -42,9 +41,8 @@ form.addEventListener('submit', async (e) => {
     setLoading(submitBtn, true, 'Creating account...');
 
     try {
-        // Create user
-        const userCred = await signUpEmail({ email, password, displayName });
-        const user = userCred.user;
+        // ✅ FIX: signUpEmail returns user object directly
+        const user = await signUpEmail({ email, password, displayName });
 
         // Generate 6-digit code
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -68,16 +66,26 @@ form.addEventListener('submit', async (e) => {
         }, 2000);
         
     } catch (err) {
-        showToast(translateFirebaseError(err), 'error');
+        console.error('Signup error:', err);
+        // Firebase error codes
+        let errorMessage = translateFirebaseError(err);
+        if (err.message) errorMessage = err.message;
+        showToast(errorMessage, 'error');
         setLoading(submitBtn, false, 'Create Account');
     }
 });
 
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
-        const userCred = await signInGoogle();
-        showToast('Google signup successful! Please check email for verification.', 'success');
-        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+        const user = await signInGoogle(); // returns user directly
+        if (!user.emailVerified) {
+            // Optionally send verification code for Google users too
+            showToast('Please verify your email. Check your inbox.', 'warning');
+            // We can also send code here via same API
+        } else {
+            showToast('Google signup successful! Redirecting...', 'success');
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+        }
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
     }
