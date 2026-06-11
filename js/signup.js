@@ -1,10 +1,17 @@
-// Signup page script with Cloudflare Turnstile
+// Signup page script with Email Verification
 import { signUpEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
+import { getAuth, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth } from "./firebase-config.js";
 
 onAuthReady((state) => {
-    if (state.user) {
+    if (state.user && state.user.emailVerified) {
+        // Already verified user goes to dashboard
         window.location.href = 'dashboard.html';
+    } else if (state.user && !state.user.emailVerified) {
+        // User exists but not verified – show verification message
+        showToast('Please verify your email first. Check your inbox.', 'warning');
+        // Optional: redirect to a "verify email" page
     }
 });
 
@@ -14,66 +21,50 @@ const submitBtn = document.getElementById('signupSubmit');
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Check terms
+    const displayName = document.getElementById('displayName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
     const terms = document.getElementById('termsCheck').checked;
+
     if (!terms) {
         showToast('You must accept the Terms and Privacy Policy', 'warning');
         return;
     }
 
-    // Get CAPTCHA token
-    const token = document.getElementById('cfToken').value;
-    if (!token) {
-        showToast('Please complete the security check', 'warning');
-        return;
-    }
-
-    setLoading(submitBtn, true, 'Verifying...');
-
-    // Verify CAPTCHA token
-    let verified = false;
-    try {
-        const res = await fetch('/api/turnstile-verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Verification failed');
-        verified = true;
-    } catch (err) {
-        showToast(err.message || 'Security check failed. Please refresh and try again.', 'error');
-        setLoading(submitBtn, false, 'Create Account');
-        if (window.turnstile) turnstile.reset();
-        document.getElementById('cfToken').value = '';
-        return;
-    }
-
-    if (!verified) return;
-
-    // Firebase signup
-    const displayName = document.getElementById('displayName').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
     setLoading(submitBtn, true, 'Creating account...');
+
     try {
-        await signUpEmail({ email, password, displayName });
-        showToast('Account created! Welcome to FlickZZ 🎉', 'success');
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+        // Step 1: Create user
+        const userCred = await signUpEmail({ email, password, displayName });
+        const user = userCred.user;
+
+        // Step 2: Send email verification
+        await sendEmailVerification(user);
+        
+        showToast('Account created! Verification email sent. Please verify to login.', 'success');
+        
+        // Step 3: Redirect to login page after 3 seconds
+        setTimeout(() => {
+            window.location.href = 'login.html?pending_verification=1';
+        }, 3000);
+        
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
         setLoading(submitBtn, false, 'Create Account');
-        if (window.turnstile) turnstile.reset();
-        document.getElementById('cfToken').value = '';
     }
 });
 
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
-        await signInGoogle();
-        showToast('Account created! Welcome 🎉', 'success');
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+        const userCred = await signInGoogle();
+        const user = userCred.user;
+        if (user && !user.emailVerified) {
+            // Force send verification for Google sign-in as well
+            await sendEmailVerification(user);
+            showToast('Please verify your email. Check your inbox.', 'warning');
+            await signOut(auth); // sign out until verified
+        }
+        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
     }
