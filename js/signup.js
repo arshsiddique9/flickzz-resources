@@ -38,11 +38,20 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'warning');
+        return;
+    }
+
     setLoading(submitBtn, true, 'Creating account...');
 
     try {
-        // ✅ FIX: signUpEmail returns user object directly
+        // ✅ signUpEmail returns user object directly
         const user = await signUpEmail({ email, password, displayName });
+
+        if (!user || !user.uid) {
+            throw new Error('User creation failed: No UID returned');
+        }
 
         // Generate 6-digit code
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -67,21 +76,29 @@ form.addEventListener('submit', async (e) => {
         
     } catch (err) {
         console.error('Signup error:', err);
-        // Firebase error codes
-        let errorMessage = translateFirebaseError(err);
-        if (err.message) errorMessage = err.message;
-        showToast(errorMessage, 'error');
+        
+        // 🔍 Firebase error code detection
+        let errorMsg = err.message || '';
+        if (errorMsg.includes('email-already-exists') || errorMsg.includes('EMAIL_EXISTS')) {
+            errorMsg = 'Email already registered. Please login instead.';
+        } else if (errorMsg.includes('weak-password')) {
+            errorMsg = 'Password is too weak. Use at least 6 characters with letters and numbers.';
+        } else {
+            errorMsg = translateFirebaseError(err) || 'Signup failed. Please try again.';
+        }
+        
+        showToast(errorMsg, 'error');
         setLoading(submitBtn, false, 'Create Account');
     }
 });
 
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
-        const user = await signInGoogle(); // returns user directly
+        const user = await signInGoogle();
         if (!user.emailVerified) {
-            // Optionally send verification code for Google users too
-            showToast('Please verify your email. Check your inbox.', 'warning');
-            // We can also send code here via same API
+            // Optional: send verification code for Google users too
+            showToast('Account created! Please verify your email.', 'warning');
+            // Generate code and store as above? But for now, just inform.
         } else {
             showToast('Google signup successful! Redirecting...', 'success');
             setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
