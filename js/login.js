@@ -1,6 +1,8 @@
-// Login page script with Cloudflare Turnstile
+// Login page script with Cloudflare Turnstile + Forgot Password
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
+import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth } from "./firebase-config.js";
 
 // Redirect if already logged in
 onAuthReady((state) => {
@@ -16,6 +18,7 @@ const submitBtn = document.getElementById('loginSubmit');
 
 // Turnstile success callback already defined in HTML (onTurnstileSuccess)
 
+// ========== LOGIN SUBMIT ==========
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -72,6 +75,7 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
+// ========== GOOGLE LOGIN ==========
 document.getElementById('googleLoginBtn').addEventListener('click', async () => {
     try {
         await signInGoogle();
@@ -82,6 +86,26 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
     }
 });
 
+// ========== FORGOT PASSWORD ==========
+document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+        showToast('Please enter your email address first', 'warning');
+        return;
+    }
+    setLoading(submitBtn, true, 'Sending reset link...');
+    try {
+        await sendPasswordResetEmail(auth, email);
+        showToast('Password reset link sent! Check your inbox/spam folder.', 'success');
+    } catch (err) {
+        showToast(translateFirebaseError(err), 'error');
+    } finally {
+        setLoading(submitBtn, false, 'Log In');
+    }
+});
+
+// ========== HELPER ==========
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
     btn.innerHTML = loading
