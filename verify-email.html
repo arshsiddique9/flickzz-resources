@@ -26,7 +26,10 @@
         <div class="auth-card">
             <div class="auth-header">
                 <h1>Verify Your Email</h1>
-                <p>Enter the 6-digit code sent to your email</p>
+                <p>We've sent a 6-digit code to <strong id="emailDisplay" style="color:var(--primary);">your email</strong>.</p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">
+                    Check your <strong>inbox and spam folder</strong>. The code expires in 1 hour.
+                </p>
             </div>
 
             <form id="verifyForm" class="auth-form">
@@ -34,7 +37,7 @@
                     <label for="code">Verification Code</label>
                     <div class="input-wrap">
                         <i class="fas fa-key"></i>
-                        <input type="text" id="code" placeholder="123456" maxlength="6" required autocomplete="off">
+                        <input type="text" id="code" placeholder="123456" maxlength="6" required autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}">
                     </div>
                 </div>
 
@@ -44,10 +47,12 @@
             </form>
 
             <div class="auth-footer" style="margin-top: 1rem;">
-                <p>Didn't receive the code? <a href="#" id="resendCodeLink">Resend</a></p>
+                <p>Didn't receive the code?
+                    <a href="#" id="resendCodeLink" style="color:var(--primary);">Resend code</a>
+                </p>
             </div>
             <div class="auth-footer">
-                <a href="login.html">Back to Login</a>
+                <a href="login.html"><i class="fas fa-arrow-left"></i> Back to Login</a>
             </div>
         </div>
     </div>
@@ -56,15 +61,18 @@
 
     <script type="module" src="js/site-config.js"></script>
     <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/main.js"></script>
     <script type="module">
-        import { showToast, translateFirebaseError } from './js/main.js';
-        import { auth } from './js/firebase-config.js';
+        import { showToast } from './js/main.js';
 
-        // Get UID from URL parameter
+        // Get UID + email from URL
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
+        const emailParam = urlParams.get('email');
+
+        if (emailParam) {
+            document.getElementById('emailDisplay').textContent = emailParam;
+        }
 
         if (!uid) {
             showToast('Invalid verification link. Please sign up again.', 'error');
@@ -74,15 +82,21 @@
         const form = document.getElementById('verifyForm');
         const verifyBtn = document.getElementById('verifyBtn');
         const codeInput = document.getElementById('code');
+        const resendLink = document.getElementById('resendCodeLink');
 
-        // Auto-focus on input
-        codeInput.focus();
+        // Only allow digits
+        codeInput.addEventListener('input', () => {
+            codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+        });
+
+        // Auto-focus
+        setTimeout(() => codeInput.focus(), 200);
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const code = codeInput.value.trim();
             if (!code || code.length !== 6) {
-                showToast('Please enter a valid 6-digit code', 'warning');
+                showToast('Please enter the 6-digit code', 'warning');
                 return;
             }
 
@@ -97,25 +111,24 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Verification failed');
 
-                showToast('Email verified successfully! Redirecting to login...', 'success');
+                showToast('✅ Email verified! Redirecting to login...', 'success');
                 setTimeout(() => {
                     window.location.href = 'login.html?verified=1';
-                }, 2000);
+                }, 1500);
             } catch (err) {
-                showToast(err.message, 'error');
+                showToast(err.message || 'Verification failed', 'error');
                 setLoading(verifyBtn, false, 'Verify Email');
                 codeInput.value = '';
                 codeInput.focus();
             }
         });
 
-        // Resend code
-        document.getElementById('resendCodeLink').addEventListener('click', async (e) => {
+        // Resend code — uses its OWN loading state, doesn't touch verifyBtn
+        resendLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            // Get email from Firestore? We stored email in emailVerifications doc. But we can use uid to fetch.
-            // Simpler: Redirect to signup again? Or we need to fetch email. Better to send a new code.
-            // We'll create a simple API for resend.
-            setLoading(verifyBtn, true, 'Sending...');
+            const originalText = resendLink.textContent;
+            resendLink.style.pointerEvents = 'none';
+            resendLink.textContent = 'Sending...';
             try {
                 const res = await fetch('/api/resend-verification-code', {
                     method: 'POST',
@@ -124,17 +137,24 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed to resend');
-                showToast('New verification code sent to your email', 'success');
+                showToast('✅ New code sent! Check your inbox.', 'success');
+                resendLink.textContent = '✓ Sent';
+                setTimeout(() => {
+                    resendLink.textContent = originalText;
+                    resendLink.style.pointerEvents = 'auto';
+                }, 4000);
             } catch (err) {
-                showToast(err.message, 'error');
-            } finally {
-                setLoading(verifyBtn, false, 'Verify Email');
+                showToast(err.message || 'Failed to resend', 'error');
+                resendLink.textContent = originalText;
+                resendLink.style.pointerEvents = 'auto';
             }
         });
 
         function setLoading(btn, loading, text) {
             btn.disabled = loading;
-            btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
+            btn.innerHTML = loading
+                ? '<span class="spinner"></span> ' + text
+                : '<span>' + text + '</span>';
         }
     </script>
     <script src="js/protection.js"></script>
