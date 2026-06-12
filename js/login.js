@@ -1,7 +1,12 @@
-// Login page script with Cloudflare Turnstile + Email Verified Check
+// ============================================
+// FlickZZ Resources - Login Script (FIXED)
+// Owner: Arsh Siddique © 2026
+// ============================================
+// Cloudflare Turnstile + Email Verified Check + Forgot Password
+
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
-import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth } from "./firebase-config.js";
 
 // Redirect if already logged in and verified
@@ -12,18 +17,18 @@ onAuthReady((state) => {
         window.location.href = redirect;
     } else if (state.user && !state.user.emailVerified) {
         showToast('Please verify your email first. Check your inbox for 6-digit code.', 'warning');
-        // Optionally sign out
         auth.signOut();
     }
 });
 
 const form = document.getElementById('loginForm');
 const submitBtn = document.getElementById('loginSubmit');
+const forgotLink = document.getElementById('forgotPasswordLink');
 
+// ============ LOGIN ============
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // CAPTCHA check (same as before)
     const token = document.getElementById('cfToken').value;
     if (!token) {
         showToast('Please complete the security check', 'warning');
@@ -32,7 +37,7 @@ form.addEventListener('submit', async (e) => {
 
     setLoading(submitBtn, true, 'Verifying...');
 
-    let verified = false;
+    // Turnstile verify
     try {
         const res = await fetch('/api/turnstile-verify', {
             method: 'POST',
@@ -41,7 +46,6 @@ form.addEventListener('submit', async (e) => {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Verification failed');
-        verified = true;
     } catch (err) {
         showToast(err.message || 'Security check failed', 'error');
         setLoading(submitBtn, false, 'Log In');
@@ -50,23 +54,25 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (!verified) return;
-
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
     setLoading(submitBtn, true, 'Logging in...');
     try {
-        const userCred = await signInEmail({ email, password });
-        const user = userCred.user;
+        const user = await signInEmail({ email, password });
 
-        // ✅ Check if email is verified
         if (!user.emailVerified) {
-            showToast('Please verify your email before logging in. Check your inbox for 6-digit code.', 'warning');
+            showToast('Please verify your email before logging in.', 'warning');
             await auth.signOut();
             setLoading(submitBtn, false, 'Log In');
             if (window.turnstile) turnstile.reset();
             document.getElementById('cfToken').value = '';
+            // Offer to take them to verify-email.html
+            setTimeout(() => {
+                if (confirm('Open verification page now?')) {
+                    window.location.href = `verify-email.html?uid=${user.uid}&email=${encodeURIComponent(email)}`;
+                }
+            }, 500);
             return;
         }
 
@@ -84,11 +90,10 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// Google login check
+// ============ GOOGLE LOGIN ============
 document.getElementById('googleLoginBtn').addEventListener('click', async () => {
     try {
-        const userCred = await signInGoogle();
-        const user = userCred.user;
+        const user = await signInGoogle();
         if (!user.emailVerified) {
             showToast('Please verify your email first.', 'warning');
             await auth.signOut();
@@ -101,26 +106,58 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
     }
 });
 
-// Forgot password
-document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
+// ============ FORGOT PASSWORD (FIXED) ============
+// Uses Firebase's built-in sendPasswordResetEmail — no custom backend needed.
+// 🚨 Make sure in Firebase Console:
+//    Authentication → Templates → Password reset → enabled
+//    Authentication → Settings → Authorized domains → your production domain is listed
+forgotLink.addEventListener('click', async (e) => {
     e.preventDefault();
+
     const email = document.getElementById('email').value.trim();
     if (!email) {
-        showToast('Enter your email address first', 'warning');
+        showToast('Enter your email address in the Email field first, then click Forgot password.', 'warning');
+        document.getElementById('email').focus();
         return;
     }
-    setLoading(submitBtn, true, 'Sending reset link...');
+    // Simple email regex
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address.', 'warning');
+        return;
+    }
+
+    // Use the forgot link itself as loading indicator (don't touch the login button)
+    const originalText = forgotLink.textContent;
+    forgotLink.style.pointerEvents = 'none';
+    forgotLink.textContent = 'Sending reset link...';
+
     try {
         await sendPasswordResetEmail(auth, email);
-        showToast('Password reset link sent!', 'success');
+        showToast('✅ Password reset link sent! Check your inbox (and spam folder).', 'success');
+        forgotLink.textContent = '✓ Email sent';
+        setTimeout(() => {
+            forgotLink.textContent = originalText;
+            forgotLink.style.pointerEvents = 'auto';
+        }, 4000);
     } catch (err) {
-        showToast(translateFirebaseError(err), 'error');
-    } finally {
-        setLoading(submitBtn, false, 'Log In');
+        console.error('Password reset error:', err);
+        let msg = translateFirebaseError(err);
+        if (err.code === 'auth/user-not-found') {
+            msg = 'No account found with this email.';
+        } else if (err.code === 'auth/invalid-email') {
+            msg = 'Invalid email address.';
+        } else if (err.code === 'auth/too-many-requests') {
+            msg = 'Too many attempts. Please try again later.';
+        }
+        showToast(msg, 'error');
+        forgotLink.textContent = originalText;
+        forgotLink.style.pointerEvents = 'auto';
     }
 });
 
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
-    btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
+    btn.innerHTML = loading
+        ? '<span class="spinner"></span> ' + text
+        : '<span>' + text + '</span>';
 }
