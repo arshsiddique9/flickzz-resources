@@ -1,29 +1,19 @@
 // ============================================
-// FlickZZ Resources - Signup Script (FIXED)
-// Owner: Arsh Siddique © 2026
+// FlickZZ Resources - Signup Script (6-DIGIT EMAIL VERIFICATION)
 // ============================================
-// 6-digit email verification via Brevo + Turnstile
-
 import { signUpEmail, signInGoogle } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 import { auth, db } from "./firebase-config.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// 🔑 FIX: signup-in-progress flag — onAuthStateChanged fires immediately after
-// createUserWithEmailAndPassword(), and we DON'T want it to redirect to dashboard
-// while we're still sending the verification email.
 let signupInProgress = false;
 
-// 🔑 FIX: Only redirect to dashboard if user is ALREADY signed in AND emailVerified
-// AND we are NOT in the middle of a fresh signup.
 onAuthStateChanged(auth, (user) => {
-    if (signupInProgress) return;        // do nothing during signup
+    if (signupInProgress) return;
     if (user && user.emailVerified) {
         window.location.href = 'dashboard.html';
     }
-    // If user is signed in but NOT verified, do NOTHING here.
-    // We'll handle the redirect to verify-email.html ourselves in the form handler.
 });
 
 const form = document.getElementById('signupForm');
@@ -35,17 +25,15 @@ async function sendVerificationCode(email, code) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code })
     });
-    const data = await response.json().catch(() => ({}));
     if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to send verification email');
     }
-    return data;
 }
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // ===== Turnstile CAPTCHA check =====
     const token = document.getElementById('cfToken').value;
     if (!token) {
         showToast('Please complete the security check', 'warning');
@@ -56,7 +44,6 @@ form.addEventListener('submit', async (e) => {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const terms = document.getElementById('termsCheck').checked;
-
     if (!terms) {
         showToast('You must accept the Terms and Privacy Policy', 'warning');
         return;
@@ -66,9 +53,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    setLoading(submitBtn, true, 'Verifying security...');
-
-    // Verify Turnstile token server-side
+    setLoading(submitBtn, true, 'Verifying...');
     try {
         const res = await fetch('/api/turnstile-verify', {
             method: 'POST',
@@ -86,17 +71,13 @@ form.addEventListener('submit', async (e) => {
     }
 
     setLoading(submitBtn, true, 'Creating account...');
-    signupInProgress = true;  // 🔑 prevent the auth listener from redirecting
+    signupInProgress = true;
 
     let createdUser = null;
     try {
-        // 1) Create the Firebase Auth user
         createdUser = await signUpEmail({ email, password, displayName });
-        if (!createdUser || !createdUser.uid) {
-            throw new Error('User creation failed: No UID returned');
-        }
+        if (!createdUser || !createdUser.uid) throw new Error('No UID returned');
 
-        // 2) Generate a 6-digit code & store it (expires in 1 hour)
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         await setDoc(doc(db, 'emailVerifications', createdUser.uid), {
             code: verificationCode,
@@ -105,25 +86,16 @@ form.addEventListener('submit', async (e) => {
             expiresAt: new Date(Date.now() + 60 * 60 * 1000)
         });
 
-        // 3) Send the code via Brevo
         try {
             await sendVerificationCode(email, verificationCode);
         } catch (emailErr) {
-            // Don't fail the whole flow — user can resend from verify-email.html
-            console.error('Brevo send failed:', emailErr);
-            showToast('Account created, but email sending failed. Use Resend on the next page.', 'warning');
+            console.error('Email send failed:', emailErr);
+            showToast('Account created, but email sending failed. You can resend on next page.', 'warning');
         }
 
         showToast('Account created! Check your email for the 6-digit code.', 'success');
-
-        // 4) 🔑 CRITICAL FIX: sign the user OUT so the auth listener can't pull
-        //    them into the dashboard before they verify.
         const uidForRedirect = createdUser.uid;
-        try {
-            await signOut(auth);
-        } catch (_) { /* ignore */ }
-
-        // 5) 🔑 CRITICAL FIX: redirect to verify-email.html with the UID
+        await signOut(auth);
         setTimeout(() => {
             window.location.href = `verify-email.html?uid=${uidForRedirect}&email=${encodeURIComponent(email)}`;
         }, 1200);
@@ -131,20 +103,10 @@ form.addEventListener('submit', async (e) => {
     } catch (err) {
         console.error('Signup error:', err);
         signupInProgress = false;
-
         let errorMsg = '';
-        const code = err.code || '';
-        const msg = err.message || '';
-        if (code === 'auth/email-already-in-use' || msg.includes('email-already')) {
-            errorMsg = 'Email already registered. Please login instead.';
-        } else if (code === 'auth/weak-password' || msg.includes('weak-password')) {
-            errorMsg = 'Password is too weak. Use at least 6 characters.';
-        } else if (code === 'auth/invalid-email') {
-            errorMsg = 'Invalid email address.';
-        } else {
-            errorMsg = translateFirebaseError(err) || msg || 'Signup failed. Please try again.';
-        }
-
+        if (err.message.includes('email-already-exists')) errorMsg = 'Email already registered. Please login instead.';
+        else if (err.message.includes('weak-password')) errorMsg = 'Password too weak. Use at least 6 characters.';
+        else errorMsg = translateFirebaseError(err) || 'Signup failed. Please try again.';
         showToast(errorMsg, 'error');
         setLoading(submitBtn, false, 'Create Account');
         if (window.turnstile) turnstile.reset();
@@ -152,16 +114,13 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// ============ Google Signup ============
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
         const user = await signInGoogle();
-        // Google accounts are already email-verified by Google itself
         if (user.emailVerified) {
             showToast('Signup successful! Redirecting...', 'success');
-            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
         } else {
-            // Very rare — Google should always give verified email
             showToast('Please verify your email.', 'warning');
         }
     } catch (err) {
@@ -171,7 +130,5 @@ document.getElementById('googleSignupBtn').addEventListener('click', async () =>
 
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
-    btn.innerHTML = loading
-        ? '<span class="spinner"></span> ' + text
-        : '<span>' + text + '</span>';
+    btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
 }
