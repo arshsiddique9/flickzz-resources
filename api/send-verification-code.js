@@ -1,6 +1,19 @@
 // api/send-verification-code.js
+import nodemailer from 'nodemailer';
+
+// SMTP transporter create karo
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
+  secure: false, // false for port 587 (STARTTLS)
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASSWORD
+  }
+});
+
 export default async function handler(req, res) {
-  // Enable CORS for development (optional)
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   
   if (req.method !== 'POST') {
@@ -12,11 +25,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email and code are required' });
   }
 
-  const BREVO_API_KEY = process.env.BREVO_API_KEY;
-  if (!BREVO_API_KEY) {
-    console.error('❌ BREVO_API_KEY is missing in environment');
-    return res.status(500).json({ error: 'Email service not configured. Please contact support.' });
+  // SMTP credentials check
+  if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_PASSWORD) {
+    console.error('❌ BREVO_SMTP_USER or BREVO_SMTP_PASSWORD missing');
+    return res.status(500).json({ error: 'Email service not configured properly' });
   }
+
+  const fromEmail = process.env.BREVO_EMAIL_FROM || 'noreply@flickzz.qzz.io';
+  const fromName = 'FlickZZ';
 
   const html = `
 <!DOCTYPE html>
@@ -36,28 +52,13 @@ export default async function handler(req, res) {
   `;
 
   try {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': BREVO_API_KEY,
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { name: 'FlickZZ', email: 'noreply@flickzz.qzz.io' },
-        to: [{ email }],
-        subject: 'Your 6‑digit verification code – FlickZZ',
-        htmlContent: html
-      })
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: email,
+      subject: 'Your 6‑digit verification code – FlickZZ',
+      html: html
     });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Brevo API error:', data);
-      throw new Error(data.message || 'Brevo request failed');
-    }
-
-    console.log('✅ Email sent successfully to', email);
+    console.log('✅ Email sent successfully to', email, 'Message ID:', info.messageId);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('❌ Error sending email:', error);
