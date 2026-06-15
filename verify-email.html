@@ -133,7 +133,7 @@
                 const res = await fetch('/api/resend-verification-code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid })
+                    body: JSON.stringify({ uid, email: emailParam })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed to resend');
