@@ -48,7 +48,8 @@ export default async function handler(req, res) {
         sender: { name: 'FlickZZ', email: fromEmail },
         to: [{ email }],
         subject: 'Your 6-digit verification code – FlickZZ',
-        htmlContent: html
+        htmlContent: html,
+        replyTo: { email: fromEmail, name: 'FlickZZ Support' }
       })
     });
 
