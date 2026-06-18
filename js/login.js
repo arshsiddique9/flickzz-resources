@@ -6,8 +6,6 @@
 
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-config.js";
 
 // Redirect if already logged in and verified
 onAuthReady((state) => {
@@ -106,11 +104,8 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
     }
 });
 
-// ============ FORGOT PASSWORD (FIXED) ============
-// Uses Firebase's built-in sendPasswordResetEmail — no custom backend needed.
-// 🚨 Make sure in Firebase Console:
-//    Authentication → Templates → Password reset → enabled
-//    Authentication → Settings → Authorized domains → your production domain is listed
+// ============ FORGOT PASSWORD (CUSTOM ENDPOINT) ============
+// Uses custom /api/forgot-password endpoint for better control and custom email template
 forgotLink.addEventListener('click', async (e) => {
     e.preventDefault();
 
@@ -120,19 +115,31 @@ forgotLink.addEventListener('click', async (e) => {
         document.getElementById('email').focus();
         return;
     }
-    // Simple email regex
+    
+    // Simple email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showToast('Please enter a valid email address.', 'warning');
         return;
     }
 
-    // Use the forgot link itself as loading indicator (don't touch the login button)
+    // Use the forgot link itself as loading indicator
     const originalText = forgotLink.textContent;
     forgotLink.style.pointerEvents = 'none';
     forgotLink.textContent = 'Sending reset link...';
 
     try {
-        await sendPasswordResetEmail(auth, email);
+        const res = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to send reset email');
+        }
+
         showToast('✅ Password reset link sent! Check your inbox (and spam folder).', 'success');
         forgotLink.textContent = '✓ Email sent';
         setTimeout(() => {
@@ -141,15 +148,7 @@ forgotLink.addEventListener('click', async (e) => {
         }, 4000);
     } catch (err) {
         console.error('Password reset error:', err);
-        let msg = translateFirebaseError(err);
-        if (err.code === 'auth/user-not-found') {
-            msg = 'No account found with this email.';
-        } else if (err.code === 'auth/invalid-email') {
-            msg = 'Invalid email address.';
-        } else if (err.code === 'auth/too-many-requests') {
-            msg = 'Too many attempts. Please try again later.';
-        }
-        showToast(msg, 'error');
+        showToast(err.message || 'Failed to send reset email', 'error');
         forgotLink.textContent = originalText;
         forgotLink.style.pointerEvents = 'auto';
     }
