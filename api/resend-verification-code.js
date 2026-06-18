@@ -5,7 +5,8 @@
 //   3. Better error logging
 
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { initFirebaseAdmin } from './firebase-init.js';
+const firebaseReady = initFirebaseAdmin();
 
 // ✅ FIX: Firebase Admin safe initialization with JSON newline fix
 function initFirebase() {
@@ -77,7 +78,7 @@ export default async function handler(req, res) {
 
     // Email HTML
     const html = `<!DOCTYPE html>
-<html>
+replyTo: { email: fromEmail, name: 'FlickZZ Support' }
 <head><meta charset="UTF-8"></head>
 <body style="font-family:'Inter',sans-serif; background:#0a0a0f; color:#f1f5f9; padding:2rem; text-align:center;">
   <div style="max-width:500px; margin:0 auto; background:#15151e; border-radius:16px; padding:2rem; border:1px solid rgba(255,255,255,0.08);">
