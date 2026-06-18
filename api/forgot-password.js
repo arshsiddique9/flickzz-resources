@@ -8,7 +8,8 @@
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import crypto from 'crypto';
+import { initFirebaseAdmin } from './firebase-init.js';
+const firebaseReady = initFirebaseAdmin();
 
 // ✅ FIX: Firebase Admin safe initialization
 function initFirebase() {
@@ -90,7 +91,7 @@ export default async function handler(req, res) {
     <img src="https://flickzz.qzz.io/images/logo.png" style="width:80px; margin-bottom:1.5rem;" alt="FlickZZ">
     <h2 style="color:#6366f1; margin-bottom:0.5rem;">Reset Your Password</h2>
     <p style="color:#94a3b8;">Click the button below to create a new password. This link expires in 1 hour.</p>
-    <div style="margin:2rem 0;">
+    replyTo: { email: fromEmail, name: 'FlickZZ Support' }
       <a href="${resetLink}" style="display:inline-block; background:#6366f1; color:white; padding:12px 32px; border-radius:8px; text-decoration:none; font-weight:600;">Reset Password</a>
     </div>
     <p style="color:#64748b; font-size:0.8rem;">Or paste this link in your browser:<br><span style="word-break:break-all; color:#94a3b8;">${resetLink}</span></p>
