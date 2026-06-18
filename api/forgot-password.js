@@ -7,12 +7,17 @@ import crypto from 'crypto';  // ← Add this
 // ✅ Firebase Admin safe initialization
 function initFirebase() {
   if (getApps().length > 0) return true;
-
   const rawJson = process.env.SERVICE_ACCOUNT_JSON;
-  if (!rawJson) {
-    console.error('❌ SERVICE_ACCOUNT_JSON missing');
+  if (!rawJson) return false;
+  try {
+    const serviceAccount = JSON.parse(rawJson);  // ← remove replace
+    initializeApp({ credential: cert(serviceAccount) });
+    return true;
+  } catch (err) {
+    console.error('❌ Firebase init failed:', err.message);
     return false;
   }
+}
 
   try {
     const fixedJson = rawJson.replace(/\\n/g, '\n');
