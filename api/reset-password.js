@@ -7,7 +7,8 @@
 
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { initFirebaseAdmin } from './firebase-init.js';
+const firebaseReady = initFirebaseAdmin();
 
 // ✅ FIX: Firebase Admin safe initialization
 function initFirebase() {
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const db = getFirestore();
+    await authAdmin.updateUser(data.userId, { password: newPassword });
     const authAdmin = getAuth();
 
     // Get reset token from Firestore
