@@ -14,20 +14,54 @@
 </head>
 <body>
 
-    <!-- =========== ACCESS GATE: Secret Code Required =========== -->
+    <!-- =========== ACCESS GATE: Owner OTP Verification =========== -->
 <div id="accessGate" class="access-gate hidden">
-    ...
-    <div class="form-group">
-        <div class="input-wrap">
-            <i class="fas fa-key"></i>
-            <input type="password" id="accessCodeInput" placeholder="Secret access code" autocomplete="off">
-            <button type="button" class="toggle-pass" data-target="accessCodeInput"><i class="fas fa-eye"></i></button>
-        </div>
+    <div class="access-gate-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
     </div>
-    <button class="btn btn-primary btn-block btn-lg" id="accessCodeSubmit">
-        <i class="fas fa-unlock"></i> Unlock Panel
-    </button>
-    ...
+    <div class="access-gate-card">
+        <div class="access-gate-icon"><i class="fas fa-shield-halved"></i></div>
+        <h1>Owner Verification</h1>
+        <p id="gateStatus">Enter your email to receive a 6-digit verification code.</p>
+
+        <!-- Step 1: Email Input -->
+        <div id="emailStep">
+            <div class="form-group">
+                <div class="input-wrap">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="ownerEmailInput" placeholder="Owner email address" value="officialflickzzyt@gmail.com">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="sendOtpBtn">
+                <i class="fas fa-paper-plane"></i> Send OTP
+            </button>
+        </div>
+
+        <!-- Step 2: OTP Input (hidden initially) -->
+        <div id="otpStep" style="display: none;">
+            <div class="form-group">
+                <div class="input-wrap">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="otpInput" placeholder="6-digit code" maxlength="6" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="verifyOtpBtn">
+                <i class="fas fa-unlock"></i> Verify OTP
+            </button>
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-ghost btn-sm" id="resendOtpBtn" style="color: var(--text-muted); font-size: 0.85rem;">
+                    <i class="fas fa-rotate-right"></i> Resend OTP
+                </button>
+            </div>
+        </div>
+
+        <div class="access-gate-info">
+            <p><i class="fas fa-circle-info"></i> This code expires in 10 minutes.</p>
+            <p style="margin-top:0.5rem;"><a href="index.html"><i class="fas fa-arrow-left"></i> Back to home</a></p>
+        </div>
+        <div id="accessAttempts" class="access-attempts hidden"></div>
+    </div>
 </div>
     <!-- =========== ACCESS DENIED (Not Owner) =========== -->
     <div id="accessDenied" class="hidden">
