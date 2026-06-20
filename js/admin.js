@@ -64,9 +64,11 @@ function hideAll() {
     adminContent.classList.add('hidden');
 }
 
+// ✅ FIXED: OTP logic is handled by HTML script, not here
 function showGate() {
     hideAll();
     accessGate.classList.remove('hidden');
+    // OTP flow is handled by inline script in HTML
 }
 
 function unlock() {
