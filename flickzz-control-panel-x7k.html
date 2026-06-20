@@ -15,33 +15,20 @@
 <body>
 
     <!-- =========== ACCESS GATE: Secret Code Required =========== -->
-    <div id="accessGate" class="access-gate hidden">
-        <div class="access-gate-bg">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-        </div>
-        <div class="access-gate-card">
-            <div class="access-gate-icon"><i class="fas fa-shield-halved"></i></div>
-            <h1>Owner Verification</h1>
-            <p>Enter your secret access code to unlock the control panel.</p>
-            <div class="form-group">
-                <div class="input-wrap">
-                    <i class="fas fa-key"></i>
-                    <input type="password" id="accessCodeInput" placeholder="Secret access code" autocomplete="off">
-                    <button type="button" class="toggle-pass" data-target="accessCodeInput"><i class="fas fa-eye"></i></button>
-                </div>
-            </div>
-            <button class="btn btn-primary btn-block btn-lg" id="accessCodeSubmit">
-                <i class="fas fa-unlock"></i> Unlock Panel
-            </button>
-            <div class="access-gate-info">
-                <p><i class="fas fa-circle-info"></i> Wrong codes are logged and rate-limited.</p>
-                <p style="margin-top:0.5rem;"><a href="index.html"><i class="fas fa-arrow-left"></i> Back to home</a></p>
-            </div>
-            <div id="accessAttempts" class="access-attempts hidden"></div>
+<div id="accessGate" class="access-gate hidden">
+    ...
+    <div class="form-group">
+        <div class="input-wrap">
+            <i class="fas fa-key"></i>
+            <input type="password" id="accessCodeInput" placeholder="Secret access code" autocomplete="off">
+            <button type="button" class="toggle-pass" data-target="accessCodeInput"><i class="fas fa-eye"></i></button>
         </div>
     </div>
-
+    <button class="btn btn-primary btn-block btn-lg" id="accessCodeSubmit">
+        <i class="fas fa-unlock"></i> Unlock Panel
+    </button>
+    ...
+</div>
     <!-- =========== ACCESS DENIED (Not Owner) =========== -->
     <div id="accessDenied" class="hidden">
         <section class="section" style="padding: 6rem 1.5rem;">
