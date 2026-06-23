@@ -19,7 +19,7 @@ const firebaseConfig = {
 };
 
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
-export const OWNER_UID = "";
+export const OWNER_UID = "Ib2vSHtdHPcARsU26qk20bsvvAv2";
 export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
 export const ADMIN_EMAILS = [];
 
