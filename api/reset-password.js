@@ -1,38 +1,16 @@
 // api/reset-password.js
 // ✅ FIXED:
-//   1. Firebase Admin initialization (was missing)
-//   2. Proper token validation
-//   3. Password validation
-//   4. Better error handling
+//   1. Removed duplicate firebaseReady declaration (was declared twice - caused crash)
+//   2. Fixed bug where updateUser() was called BEFORE authAdmin/data were defined
+//   3. Proper token validation
+//   4. Password validation
+//   5. Better error handling
 
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initFirebaseAdmin } from './firebase-init.js';
+
 const firebaseReady = initFirebaseAdmin();
-
-// ✅ FIX: Firebase Admin safe initialization
-function initFirebase() {
-  if (getApps().length > 0) return true;
-
-  const rawJson = process.env.SERVICE_ACCOUNT_JSON;
-  if (!rawJson) {
-    console.error('❌ SERVICE_ACCOUNT_JSON missing');
-    return false;
-  }
-
-  try {
-    const fixedJson = rawJson.replace(/\\n/g, '\n');
-    const serviceAccount = JSON.parse(fixedJson);
-    initializeApp({ credential: cert(serviceAccount) });
-    console.log('✅ Firebase initialized for reset-password');
-    return true;
-  } catch (err) {
-    console.error('❌ Firebase init failed:', err.message);
-    return false;
-  }
-}
-
-const firebaseReady = initFirebase();
 
 export default async function handler(req, res) {
   // CORS headers
@@ -59,7 +37,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await authAdmin.updateUser(data.userId, { password: newPassword });
+    const db = getFirestore();
     const authAdmin = getAuth();
 
     // Get reset token from Firestore
@@ -72,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     const data = docSnap.data();
-    
+
     // Check if token has expired
     const tokenExpiry = data.expiresAt.toDate();
     if (tokenExpiry < new Date()) {
@@ -88,9 +66,9 @@ export default async function handler(req, res) {
     // Delete used token (one-time use)
     await docRef.delete();
 
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Password reset successfully. Please log in with your new password.' 
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successfully. Please log in with your new password.'
     });
 
   } catch (err) {
@@ -98,20 +76,20 @@ export default async function handler(req, res) {
 
     // Specific error handling
     if (err.code === 'auth/invalid-password') {
-      return res.status(400).json({ 
-        error: 'Password is too weak. Use a stronger password.' 
+      return res.status(400).json({
+        error: 'Password is too weak. Use a stronger password.'
       });
     }
 
     if (err.code === 'auth/user-not-found') {
-      return res.status(404).json({ 
-        error: 'User account not found' 
+      return res.status(404).json({
+        error: 'User account not found'
       });
     }
 
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Failed to reset password',
-      details: err.message 
+      details: err.message
     });
   }
 }
