@@ -1,40 +1,13 @@
 // api/resend-verification-code.js
-// ✅ FIXED: 
-//   1. SERVICE_ACCOUNT_JSON safe parsing (newline fix)
-//   2. Sirf Brevo API use karta hai (SMTP hataya)
-//   3. Better error logging
+// ✅ FIXED:
+//   1. Removed duplicate firebaseReady declaration (caused crash)
+//   2. Removed misplaced replyTo line that had leaked into the HTML template
+//   3. Uses shared firebase-init.js helper (safe JSON parsing)
 
 import { getFirestore } from 'firebase-admin/firestore';
 import { initFirebaseAdmin } from './firebase-init.js';
+
 const firebaseReady = initFirebaseAdmin();
-
-// ✅ FIX: Firebase Admin safe initialization with JSON newline fix
-function initFirebase() {
-  if (getApps().length > 0) return true; // Already initialized
-
-  const rawJson = process.env.SERVICE_ACCOUNT_JSON;
-  if (!rawJson) {
-    console.error('❌ SERVICE_ACCOUNT_JSON environment variable is missing');
-    return false;
-  }
-
-  try {
-    // ✅ KEY FIX: Vercel mein private_key ki newlines escape ho jaati hain
-    // "\\n" ko actual "\n" mein convert karna zaroori hai
-    const fixedJson = rawJson.replace(/\\n/g, '\n');
-    const serviceAccount = JSON.parse(fixedJson);
-    
-    initializeApp({ credential: cert(serviceAccount) });
-    console.log('✅ Firebase Admin SDK initialized successfully');
-    return true;
-  } catch (err) {
-    console.error('❌ Firebase Admin init failed:', err.message);
-    console.error('Check SERVICE_ACCOUNT_JSON format in Vercel env vars');
-    return false;
-  }
-}
-
-const firebaseReady = initFirebase();
 
 export default async function handler(req, res) {
   // CORS headers
@@ -63,7 +36,7 @@ export default async function handler(req, res) {
   try {
     // Generate new 6-digit OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Save to Firestore
     const db = getFirestore();
     const docRef = db.collection('emailVerifications').doc(uid);
@@ -78,7 +51,7 @@ export default async function handler(req, res) {
 
     // Email HTML
     const html = `<!DOCTYPE html>
-replyTo: { email: fromEmail, name: 'FlickZZ Support' }
+<html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family:'Inter',sans-serif; background:#0a0a0f; color:#f1f5f9; padding:2rem; text-align:center;">
   <div style="max-width:500px; margin:0 auto; background:#15151e; border-radius:16px; padding:2rem; border:1px solid rgba(255,255,255,0.08);">
