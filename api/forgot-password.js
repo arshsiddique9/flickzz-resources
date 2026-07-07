@@ -1,18 +1,23 @@
-// api/forgot-password.js
-// ✅ FIXED:
-//   1. Uses shared firebase-init.js helper (safe JSON parsing, no duplicate declarations)
-//   2. Added replyTo header for better inbox delivery (spam fix)
-//   3. Clean error handling
-
+// api/forgot-password.js - SMTP Method (No IP Restriction)
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { initFirebaseAdmin } from './firebase-init.js';
 
 const firebaseReady = initFirebaseAdmin();
 
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASSWORD
+  }
+});
+
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -27,27 +32,19 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Service temporarily unavailable' });
   }
 
-  const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const fromEmail = process.env.BREVO_EMAIL_FROM || 'noreply@flickzz.qzz.io';
-
-  if (!BREVO_API_KEY) {
-    console.error('❌ BREVO_API_KEY not set');
-    return res.status(500).json({ error: 'Email service not configured' });
-  }
+  const fromName = 'FlickZZ';
 
   try {
     const authAdmin = getAuth();
     const db = getFirestore();
 
-    // Check if user exists
     const user = await authAdmin.getUserByEmail(email);
     console.log(`✅ User found: ${user.uid}`);
 
-    // Generate secure reset token
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Save token to Firestore
     await db.collection('passwordResetTokens').doc(token).set({
       email,
       userId: user.uid,
@@ -56,7 +53,6 @@ export default async function handler(req, res) {
     });
     console.log(`✅ Reset token saved for ${email}`);
 
-    // Build reset link
     const resetLink = `https://flickzz.qzz.io/reset-password.html?token=${token}`;
 
     const html = `<!DOCTYPE html>
@@ -78,32 +74,14 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
-    // Send via Brevo API with proper headers
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { name: 'FlickZZ', email: fromEmail },
-        to: [{ email }],
-        subject: 'Reset your FlickZZ password',
-        htmlContent: html,
-        replyTo: { email: fromEmail, name: 'FlickZZ Support' }
-      })
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: email,
+      subject: 'Reset your FlickZZ password',
+      html: html
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('❌ Brevo API error:', response.status, errData);
-      return res.status(500).json({
-        error: 'Failed to send reset email',
-        details: errData.message || response.statusText
-      });
-    }
-
-    console.log(`✅ Password reset email sent to ${email}`);
+    console.log(`✅ Password reset email sent via SMTP to ${email}`);
     return res.status(200).json({
       success: true,
       message: 'Reset link sent to your email. Check your inbox.'
@@ -111,13 +89,11 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('❌ Forgot password error:', err.message);
-
     if (err.code === 'auth/user-not-found') {
       return res.status(404).json({
         error: 'No account found with this email address'
       });
     }
-
     return res.status(500).json({
       error: 'Failed to process password reset request',
       details: err.message
