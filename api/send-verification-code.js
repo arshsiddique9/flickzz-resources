@@ -1,8 +1,17 @@
-// api/send-verification-code.js
-// ✅ FIXED: Sirf Brevo API use karta hai (SMTP hataya - Vercel ke saath reliable nahi tha)
+// api/send-verification-code.js - SMTP Method (No IP Restriction)
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASSWORD
+  }
+});
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,13 +22,8 @@ export default async function handler(req, res) {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
 
-  const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const fromEmail = process.env.BREVO_EMAIL_FROM || 'noreply@flickzz.qzz.io';
-
-  if (!BREVO_API_KEY) {
-    console.error('❌ BREVO_API_KEY is not set in environment variables');
-    return res.status(500).json({ error: 'Email service not configured' });
-  }
+  const fromName = 'FlickZZ';
 
   const html = `<!DOCTYPE html>
 <html>
@@ -38,35 +42,18 @@ export default async function handler(req, res) {
 </html>`;
 
   try {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { name: 'FlickZZ', email: fromEmail },
-        to: [{ email }],
-        subject: 'Your 6-digit verification code – FlickZZ',
-        htmlContent: html,
-        replyTo: { email: fromEmail, name: 'FlickZZ Support' }
-      })
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: email,
+      subject: 'Your 6-digit verification code – FlickZZ',
+      html: html
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('❌ Brevo API error:', response.status, errData);
-      return res.status(500).json({
-        error: 'Failed to send email',
-        details: errData.message || response.statusText
-      });
-    }
-
-    console.log(`✅ Verification email sent to ${email}`);
+    console.log(`✅ Verification email sent via SMTP to ${email}`);
     return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error('❌ Unexpected error:', err.message);
-    return res.status(500).json({ error: 'Internal server error', details: err.message });
+    console.error('❌ Error sending email:', err.message);
+    return res.status(500).json({ error: err.message || 'Failed to send verification email' });
   }
 }
