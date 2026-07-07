@@ -1,6 +1,7 @@
-// api/send-admin-otp.js
+// api/send-admin-otp.js - SMTP Method (No IP Restriction)
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import nodemailer from 'nodemailer';
 
 // Init Firebase Admin
 if (!getApps().length) {
@@ -19,6 +20,17 @@ if (!getApps().length) {
 
 const db = getFirestore();
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'officialflickzzyt@gmail.com';
+
+// SMTP Transporter (Brevo SMTP - no IP restriction)
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASSWORD
+  }
+});
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -57,14 +69,8 @@ export default async function handler(req, res) {
     }, { merge: true });
     console.log(`✅ Admin OTP stored for ${email}: ${otp}`);
 
-    // Send email via Brevo
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
     const fromEmail = process.env.BREVO_EMAIL_FROM || 'noreply@flickzz.qzz.io';
-
-    if (!BREVO_API_KEY) {
-      console.error('❌ BREVO_API_KEY not set');
-      return res.status(500).json({ error: 'Email service not configured' });
-    }
+    const fromName = 'FlickZZ';
 
     const html = `<!DOCTYPE html>
 <html>
@@ -82,29 +88,15 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { name: 'FlickZZ', email: fromEmail },
-        to: [{ email }],
-        subject: '🔐 Admin Panel OTP – FlickZZ',
-        htmlContent: html
-      })
+    // Send via SMTP (no IP restriction)
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: email,
+      subject: '🔐 Admin Panel OTP – FlickZZ',
+      html: html
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('❌ Brevo API error:', response.status, errData);
-      return res.status(500).json({ 
-        error: 'Failed to send OTP email. Please try again.' 
-      });
-    }
-
-    console.log(`✅ Admin OTP sent to ${email}`);
+    console.log(`✅ Admin OTP sent via SMTP to ${email}`);
     return res.status(200).json({ 
       success: true, 
       message: 'OTP sent to your email. Check inbox/spam.' 
@@ -113,7 +105,8 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('❌ Send admin OTP error:', err.message);
     return res.status(500).json({ 
-      error: 'Failed to send OTP. Please try again later.' 
+      error: 'Failed to send OTP. Please try again later.',
+      details: err.message 
     });
   }
 }
