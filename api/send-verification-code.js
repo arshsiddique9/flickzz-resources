@@ -1,3 +1,4 @@
+
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -26,16 +27,22 @@ export default async function handler(req, res) {
 </html>`;
 
   try {
-    await resend.emails.send({
-      from: 'FlickZZ <onboarding@resend.dev>',  // ✅ Resend default domain
+    const { data, error } = await resend.emails.send({
+      from: 'FlickZZ <onboarding@resend.dev>',
       to: email,
       subject: 'Your verification code – FlickZZ',
       html: html
     });
-    console.log(`✅ Verification email sent to ${email}`);
-    res.status(200).json({ success: true });
+
+    if (error) {
+      console.error('❌ Resend error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log(`✅ Verification email sent to ${email}`, data);
+    res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error('❌ Resend error:', err);
+    console.error('❌ Exception:', err);
     res.status(500).json({ error: err.message });
   }
 }
