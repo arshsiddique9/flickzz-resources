@@ -60,18 +60,12 @@ async function bootstrap() {
     const u = authState.user;
     const name = u.displayName || u.email.split('@')[0];
     
-    // ✅ Check if elements exist before setting
-    const userNameEl = document.getElementById('adminUserName');
-    const userEmailEl = document.getElementById('adminUserEmail');
-    const dashNameEl = document.getElementById('dashGreetName');
-    const ownerEmailEl = document.getElementById('ownerEmailDisplay');
-    const ownerUidEl = document.getElementById('ownerUidDisplay');
-    
-    if (userNameEl) userNameEl.textContent = name;
-    if (userEmailEl) userEmailEl.textContent = u.email;
-    if (dashNameEl) dashNameEl.textContent = name;
-    if (ownerEmailEl) ownerEmailEl.textContent = u.email;
-    if (ownerUidEl) ownerUidEl.textContent = u.uid;
+    // ✅ All DOM elements exist
+    document.getElementById('adminUserName').textContent = name;
+    document.getElementById('adminUserEmail').textContent = u.email;
+    document.getElementById('dashGreetName').textContent = name;
+    document.getElementById('ownerEmailDisplay').textContent = u.email;
+    document.getElementById('ownerUidDisplay').textContent = u.uid;
 
     // ✅ All functions defined below
     bindSidebar();
@@ -192,14 +186,10 @@ function bindCopyUid() {
 async function loadStats() {
     try {
         const stats = await getPlatformStats();
-        const el1 = document.getElementById('totalResources');
-        const el2 = document.getElementById('totalUsers');
-        const el3 = document.getElementById('totalDownloads');
-        const el4 = document.getElementById('totalFeedback');
-        if (el1) el1.textContent = formatNumber(stats.totalResources);
-        if (el2) el2.textContent = formatNumber(stats.totalUsers);
-        if (el3) el3.textContent = formatNumber(stats.totalDownloads);
-        if (el4) el4.textContent = formatNumber(stats.totalFeedback || 0);
+        document.getElementById('totalResources').textContent = formatNumber(stats.totalResources);
+        document.getElementById('totalUsers').textContent = formatNumber(stats.totalUsers);
+        document.getElementById('totalDownloads').textContent = formatNumber(stats.totalDownloads);
+        document.getElementById('totalFeedback').textContent = formatNumber(stats.totalFeedback || 0);
     } catch (err) {
         console.error(err);
     }
@@ -696,22 +686,14 @@ async function loadDownloadsTable() {
 async function loadSettings() {
     try {
         const s = await fetchSettings();
-        const el1 = document.getElementById('setDiscord');
-        const el2 = document.getElementById('setYoutube');
-        const el3 = document.getElementById('setAnnouncement');
-        const el4 = document.getElementById('setHeroTitle');
-        const el5 = document.getElementById('setHeroSubtitle');
-        const el6 = document.getElementById('setFeedbackEnabled');
-        const el7 = document.getElementById('setRegistrationOpen');
-        const el8 = document.getElementById('setMaintenance');
-        if (el1) el1.value = s.discordUrl || '';
-        if (el2) el2.value = s.youtubeUrl || '';
-        if (el3) el3.value = s.announcement || '';
-        if (el4) el4.value = s.heroTitle || '';
-        if (el5) el5.value = s.heroSubtitle || '';
-        if (el6) el6.checked = s.feedbackEnabled !== false;
-        if (el7) el7.checked = s.registrationOpen !== false;
-        if (el8) el8.checked = !!s.maintenance;
+        document.getElementById('setDiscord').value = s.discordUrl || '';
+        document.getElementById('setYoutube').value = s.youtubeUrl || '';
+        document.getElementById('setAnnouncement').value = s.announcement || '';
+        document.getElementById('setHeroTitle').value = s.heroTitle || '';
+        document.getElementById('setHeroSubtitle').value = s.heroSubtitle || '';
+        document.getElementById('setFeedbackEnabled').checked = s.feedbackEnabled !== false;
+        document.getElementById('setRegistrationOpen').checked = s.registrationOpen !== false;
+        document.getElementById('setMaintenance').checked = !!s.maintenance;
     } catch (err) {
         console.warn('loadSettings error', err);
     }
