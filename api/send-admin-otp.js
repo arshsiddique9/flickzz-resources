@@ -1,8 +1,7 @@
-// api/send-admin-otp.js (Unosend)
+// api/send-admin-otp.js (Unosend – Correct Base URL)
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 
-// Init Firebase Admin
 if (!getApps().length) {
   const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_JSON);
   initializeApp({ credential: cert(serviceAccount) });
@@ -20,7 +19,6 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   if (email.toLowerCase().trim() !== OWNER_EMAIL.toLowerCase().trim()) {
-    console.warn(`❌ Unauthorized OTP attempt: ${email}`);
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -31,12 +29,11 @@ export default async function handler(req, res) {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  try {
-    await db.collection('adminOTP').doc(email).set({
-      otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000), createdAt: new Date(), attempts: 0
-    }, { merge: true });
+  await db.collection('adminOTP').doc(email).set({
+    otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000), createdAt: new Date(), attempts: 0
+  }, { merge: true });
 
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family:'Inter',sans-serif; background:#0a0a0f; color:#f1f5f9; padding:2rem; text-align:center;">
@@ -51,7 +48,8 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
-    const response = await fetch('https://api.unosend.com/v1/emails', {
+  try {
+    const response = await fetch('https://api.unosend.co/v1/emails', {  // ✅ Correct Base URL
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${UNOSEND_API_KEY}`,
