@@ -13,6 +13,7 @@ service cloud.firestore {
       ];
     }
 
+    // ===== USERS =====
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid == userId;
@@ -20,6 +21,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ===== RESOURCES =====
     match /resources/{resourceId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
@@ -49,6 +51,7 @@ service cloud.firestore {
       }
     }
 
+    // ===== DOWNLOADS =====
     match /downloads/{downloadId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
@@ -56,11 +59,13 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ===== SITE SETTINGS =====
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // ===== FEEDBACK =====
     match /feedback/{feedbackId} {
       allow read: if true;
       allow create: if isSignedIn()
@@ -75,6 +80,46 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ===== EMAIL VERIFICATIONS (for signup OTP) =====
+    match /emailVerifications/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // ===== ADMIN OTP (for admin panel) =====
+    match /adminOTP/{email} {
+      allow read, write: if isSignedIn() && request.auth.token.email == email;
+      allow delete: if isAdmin();
+    }
+
+    // ===== PASSWORD RESET TOKENS =====
+    match /passwordResetTokens/{token} {
+      allow read, write: if false;  // server-side only via Admin SDK
+    }
+
+    // ===== PUBLIC STATS (for homepage guest view) =====
+    match /publicStats/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ===== INSTALLATIONS (plugin license tracking) =====
+    match /installations/{installationId} {
+      allow read: if isAdmin();   // only admins can see installations
+      allow create: if isSignedIn();  // plugin verification can create
+      allow update: if isSignedIn();  // plugin heartbeat updates
+      allow delete: if isAdmin();
+    }
+
+    // ===== LICENSES (plugin license management) =====
+    match /licenses/{licenseId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+      // Note: plugin verification reads license validity, so we allow read for signed-in
+      allow read: if isSignedIn();  // allow signed-in to check license status during verification
+    }
+
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }
