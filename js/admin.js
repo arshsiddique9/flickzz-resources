@@ -1,4 +1,4 @@
-// admin.js (Complete – All Functions Defined)
+// admin.js (Complete – All Functions Defined + Installations Tab)
 import { authState, onAuthReady, logout } from "./auth.js";
 import { isOwner, OWNER_EMAIL } from "./firebase-config.js";
 import {
@@ -60,14 +60,12 @@ async function bootstrap() {
     const u = authState.user;
     const name = u.displayName || u.email.split('@')[0];
     
-    // ✅ All DOM elements exist
     document.getElementById('adminUserName').textContent = name;
     document.getElementById('adminUserEmail').textContent = u.email;
     document.getElementById('dashGreetName').textContent = name;
     document.getElementById('ownerEmailDisplay').textContent = u.email;
     document.getElementById('ownerUidDisplay').textContent = u.uid;
 
-    // ✅ All functions defined below
     bindSidebar();
     bindMobileNav();
     bindForm();
@@ -75,6 +73,7 @@ async function bootstrap() {
     bindLogout();
     bindCopyUid();
     bindSettingsForm();
+    bindInstallationsFilters();
 
     await Promise.all([
         loadStats(),
@@ -84,7 +83,8 @@ async function bootstrap() {
         loadCommentsTable(),
         loadDownloadsTable(),
         loadSettings(),
-        loadDashboardLists()
+        loadDashboardLists(),
+        loadInstallations()   // ✅ new
     ]);
 }
 
@@ -97,7 +97,8 @@ const TAB_TITLES = {
     comments: 'Comments',
     feedback: 'Feedback',
     downloads: 'Downloads',
-    settings: 'Site Settings'
+    settings: 'Site Settings',
+    installations: 'Installations'   // ✅ new
 };
 
 function bindSidebar() {
@@ -729,6 +730,103 @@ function bindSettingsForm() {
             submitBtn.innerHTML = orig;
         }
     }
+}
+
+// ============ INSTALLATIONS TRACKING ============
+let installPage = 0;
+let installTotal = 0;
+const INSTALL_LIMIT = 20;
+
+async function loadInstallations() {
+    const tbody = document.getElementById('installationsTable');
+    const countEl = document.getElementById('installCount');
+    const pageInfo = document.getElementById('installPageInfo');
+    if (!tbody) return;
+
+    tbody.innerHTML = loadingRow(9);
+
+    try {
+        const plugin = document.getElementById('installPluginFilter')?.value || '';
+        const status = document.getElementById('installStatusFilter')?.value || '';
+        const search = document.getElementById('installSearch')?.value.trim() || '';
+
+        let url = `/api/installations?limit=${INSTALL_LIMIT}&offset=${installPage * INSTALL_LIMIT}`;
+        if (plugin) url += `&plugin=${encodeURIComponent(plugin)}`;
+        if (status) url += `&status=${encodeURIComponent(status)}`;
+        if (search) url += `&installationId=${encodeURIComponent(search)}`;
+
+        const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${authState.user?.uid}` }
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Failed to load installations');
+
+        installTotal = data.total || data.data.length || 0;
+
+        if (!data.data || !data.data.length) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted);">No installations found.</td></tr>`;
+            countEl.textContent = '0 installations';
+            pageInfo.textContent = 'Page 1';
+            return;
+        }
+
+        tbody.innerHTML = data.data.map(install => {
+            const statusBadge = install.status === 'ONLINE'
+                ? '<span class="status-badge status-active">Online</span>'
+                : '<span class="status-badge status-banned">Offline</span>';
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(install.plugin)}</strong></td>
+                    <td><code>${escapeHtml(install.licenseId)}</code></td>
+                    <td><code style="font-size:0.75rem;">${escapeHtml(install.installationId)}</code></td>
+                    <td>${escapeHtml(install.pluginVersion)}</td>
+                    <td>${escapeHtml(install.mcVersion)}</td>
+                    <td>${formatDate(install.firstSeen)}</td>
+                    <td>${formatDate(install.lastSeen)}</td>
+                    <td>${statusBadge}</td>
+                    <td>${install.verificationCount || 0}</td>
+                </tr>
+            `;
+        }).join('');
+
+        countEl.textContent = `${installTotal} installations`;
+        const totalPages = Math.ceil(installTotal / INSTALL_LIMIT) || 1;
+        pageInfo.textContent = `Page ${installPage + 1} of ${totalPages}`;
+
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = errorRow(9, err.message || 'Error loading installations');
+    }
+}
+
+function bindInstallationsFilters() {
+    const pluginFilter = document.getElementById('installPluginFilter');
+    const statusFilter = document.getElementById('installStatusFilter');
+    const searchInput = document.getElementById('installSearch');
+    const refreshBtn = document.getElementById('refreshInstallations');
+    const prevBtn = document.getElementById('prevInstallPage');
+    const nextBtn = document.getElementById('nextInstallPage');
+
+    if (pluginFilter) pluginFilter.addEventListener('change', () => { installPage = 0; loadInstallations(); });
+    if (statusFilter) statusFilter.addEventListener('change', () => { installPage = 0; loadInstallations(); });
+    if (searchInput) searchInput.addEventListener('input', debounce(() => { installPage = 0; loadInstallations(); }, 300));
+    if (refreshBtn) refreshBtn.addEventListener('click', () => { installPage = 0; loadInstallations(); });
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        if (installPage > 0) { installPage--; loadInstallations(); }
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(installTotal / INSTALL_LIMIT);
+        if (installPage < totalPages - 1) { installPage++; loadInstallations(); }
+    });
+}
+
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
 }
 
 // ============ HELPERS ============
