@@ -24,7 +24,6 @@ const adminContent = document.getElementById('adminContent');
 
 (async function init() {
     hideAll();
-
     await new Promise(resolve => onAuthReady(resolve));
 
     if (!authState.user) {
@@ -39,7 +38,6 @@ const adminContent = document.getElementById('adminContent');
         return;
     }
 
-    // ✅ Owner hai – admin panel dikhao
     unlock();
 })();
 
@@ -52,10 +50,10 @@ function hideAll() {
 function unlock() {
     hideAll();
     adminContent.classList.remove('hidden');
-    bootstrap();
+    // ✅ Wait for DOM to be fully ready
+    setTimeout(() => bootstrap(), 100);
 }
 
-// ============ BOOTSTRAP ============
 async function bootstrap() {
     const u = authState.user;
     const name = u.displayName || u.email.split('@')[0];
@@ -85,5 +83,33 @@ async function bootstrap() {
     ]);
 }
 
-// ... baaki saare functions (bindSidebar, loadStats, loadResourcesTable, submitForm, etc.) same rahenge
-// (copy from your existing admin.js – just remove showGate, showLockout, OTP related code)
+// ============ SIDEBAR NAV ============
+const TAB_TITLES = {
+    dashboard: 'Dashboard',
+    upload: 'Upload Resource',
+    manage: 'Manage Resources',
+    users: 'Users',
+    comments: 'Comments',
+    feedback: 'Feedback',
+    downloads: 'Downloads',
+    settings: 'Site Settings'
+};
+
+function bindSidebar() {
+    document.querySelectorAll('.admin-nav-item[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            const target = document.getElementById(`tab-${tab}`);
+            if (target) target.classList.add('active');
+            document.getElementById('adminTabTitle').textContent = TAB_TITLES[tab] || tab;
+            document.getElementById('adminSidebar').classList.remove('open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+}
+
+// ... baaki saare functions (loadStats, loadResourcesTable, bindForm, submitForm, etc.) same rahenge
+// Copy from your existing admin.js – only remove OTP/gate related code
