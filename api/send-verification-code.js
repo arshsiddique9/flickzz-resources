@@ -1,7 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+// api/send-verification-code.js (Unosend)
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -9,6 +6,12 @@ export default async function handler(req, res) {
 
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
+
+  const UNOSEND_API_KEY = process.env.UNOSEND_API_KEY;
+  if (!UNOSEND_API_KEY) {
+    console.error('❌ UNOSEND_API_KEY is not set');
+    return res.status(500).json({ error: 'Email service not configured' });
+  }
 
   const html = `<!DOCTYPE html>
 <html>
@@ -26,20 +29,31 @@ export default async function handler(req, res) {
 </html>`;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'FlickZZ <onboarding@resend.dev>',
-      to: email,
-      subject: 'Your verification code – FlickZZ',
-      html: html
+    const response = await fetch('https://api.unosend.com/v1/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${UNOSEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: {
+          email: 'noreply@flickzz.qzz.io',
+          name: 'FlickZZ'
+        },
+        to: [{ email }],
+        subject: 'Your verification code – FlickZZ',
+        html: html
+      })
     });
 
-    if (error) {
-      console.error('❌ Resend error:', error);
-      return res.status(500).json({ error: error.message });
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('❌ Unosend error:', data);
+      return res.status(500).json({ error: data.message || 'Failed to send email' });
     }
 
     console.log(`✅ Verification email sent to ${email}`, data);
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ success: true });
   } catch (err) {
     console.error('❌ Exception:', err);
     res.status(500).json({ error: err.message });
