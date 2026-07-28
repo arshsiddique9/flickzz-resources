@@ -1,4 +1,4 @@
-// admin.js (Full Fixed Version)
+// admin.js (Complete – All Functions Defined)
 import { authState, onAuthReady, logout } from "./auth.js";
 import { isOwner, OWNER_EMAIL } from "./firebase-config.js";
 import {
@@ -52,7 +52,6 @@ function hideAll() {
 function unlock() {
     hideAll();
     adminContent.classList.remove('hidden');
-    // ✅ Ensure DOM is ready
     setTimeout(() => bootstrap(), 200);
 }
 
@@ -60,13 +59,21 @@ function unlock() {
 async function bootstrap() {
     const u = authState.user;
     const name = u.displayName || u.email.split('@')[0];
-    document.getElementById('adminUserName').textContent = name;
-    document.getElementById('adminUserEmail').textContent = u.email;
-    document.getElementById('dashGreetName').textContent = name;
-    document.getElementById('ownerEmailDisplay').textContent = u.email;
-    document.getElementById('ownerUidDisplay').textContent = u.uid;
+    
+    // ✅ Check if elements exist before setting
+    const userNameEl = document.getElementById('adminUserName');
+    const userEmailEl = document.getElementById('adminUserEmail');
+    const dashNameEl = document.getElementById('dashGreetName');
+    const ownerEmailEl = document.getElementById('ownerEmailDisplay');
+    const ownerUidEl = document.getElementById('ownerUidDisplay');
+    
+    if (userNameEl) userNameEl.textContent = name;
+    if (userEmailEl) userEmailEl.textContent = u.email;
+    if (dashNameEl) dashNameEl.textContent = name;
+    if (ownerEmailEl) ownerEmailEl.textContent = u.email;
+    if (ownerUidEl) ownerUidEl.textContent = u.uid;
 
-    // ✅ Bind all events
+    // ✅ All functions defined below
     bindSidebar();
     bindMobileNav();
     bindForm();
@@ -75,7 +82,6 @@ async function bootstrap() {
     bindCopyUid();
     bindSettingsForm();
 
-    // Load all data
     await Promise.all([
         loadStats(),
         loadResourcesTable(),
@@ -102,7 +108,6 @@ const TAB_TITLES = {
 
 function bindSidebar() {
     document.querySelectorAll('.admin-nav-item[data-tab]').forEach(btn => {
-        // ✅ Remove old listeners to avoid duplicates
         btn.removeEventListener('click', handleTabClick);
         btn.addEventListener('click', handleTabClick);
     });
@@ -123,6 +128,7 @@ function handleTabClick(e) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// ============ MOBILE NAV ============
 function bindMobileNav() {
     const sidebar = document.getElementById('adminSidebar');
     const toggle = document.getElementById('adminMenuToggle');
@@ -146,6 +152,7 @@ function bindMobileNav() {
     }
 }
 
+// ============ LOGOUT ============
 function bindLogout() {
     const btn = document.getElementById('adminLogoutBtn');
     if (btn) {
@@ -156,12 +163,14 @@ function bindLogout() {
         try {
             await logout();
             showToast('Logged out', 'success');
+            window.location.href = 'index.html';
         } catch (err) {
             window.location.href = 'index.html';
         }
     }
 }
 
+// ============ COPY UID ============
 function bindCopyUid() {
     const btn = document.getElementById('copyUidBtn');
     if (btn) {
@@ -183,10 +192,14 @@ function bindCopyUid() {
 async function loadStats() {
     try {
         const stats = await getPlatformStats();
-        document.getElementById('totalResources').textContent = formatNumber(stats.totalResources);
-        document.getElementById('totalUsers').textContent = formatNumber(stats.totalUsers);
-        document.getElementById('totalDownloads').textContent = formatNumber(stats.totalDownloads);
-        document.getElementById('totalFeedback').textContent = formatNumber(stats.totalFeedback || 0);
+        const el1 = document.getElementById('totalResources');
+        const el2 = document.getElementById('totalUsers');
+        const el3 = document.getElementById('totalDownloads');
+        const el4 = document.getElementById('totalFeedback');
+        if (el1) el1.textContent = formatNumber(stats.totalResources);
+        if (el2) el2.textContent = formatNumber(stats.totalUsers);
+        if (el3) el3.textContent = formatNumber(stats.totalDownloads);
+        if (el4) el4.textContent = formatNumber(stats.totalFeedback || 0);
     } catch (err) {
         console.error(err);
     }
@@ -269,7 +282,7 @@ function renderResourcesTable() {
                     <div class="action-btns">
                         <button class="icon-btn" data-action="edit" data-id="${r.id}" title="Edit"><i class="fas fa-pen"></i></button>
                         <a class="icon-btn" href="resource-detail.html?id=${encodeURIComponent(r.id)}" title="View"><i class="fas fa-eye"></i></a>
-                        <button class="icon-btn" data-action="toggle-featured" data-id="${r.id}" data-featured="${!!r.featured}" title="${r.featured ? 'Unfeature' : 'Feature'}"><i class="fas fa-star"></i></button>
+                        <button class="icon-btn" data-action="toggle-featured" data-id="${r.id}" data-featured="${!!r.featured}"><i class="fas fa-star"></i></button>
                         <button class="icon-btn danger" data-action="delete" data-id="${r.id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
                 </td>
@@ -278,12 +291,12 @@ function renderResourcesTable() {
     }).join('');
 
     tbody.querySelectorAll('button[data-action]').forEach(btn => {
-        btn.removeEventListener('click', handleAction);
-        btn.addEventListener('click', handleAction);
+        btn.removeEventListener('click', handleResourceAction);
+        btn.addEventListener('click', handleResourceAction);
     });
 }
 
-function handleAction(e) {
+function handleResourceAction(e) {
     const btn = e.currentTarget;
     const action = btn.dataset.action;
     const id = btn.dataset.id;
@@ -370,7 +383,7 @@ async function submitForm(e) {
         return;
     }
     if (externalUrl && !externalUrl.startsWith('http')) {
-        showToast('Invalid URL', 'warning');
+        showToast('Invalid URL. Must start with http:// or https://', 'warning');
         return;
     }
 
@@ -388,10 +401,10 @@ async function submitForm(e) {
 
         if (editingId) {
             await updateResource(editingId, payload);
-            showToast('Resource updated', 'success');
+            showToast('Resource updated successfully', 'success');
         } else {
             await createResource(payload);
-            showToast('Resource uploaded 🎉', 'success');
+            showToast('Resource uploaded successfully 🎉', 'success');
         }
         resetForm();
         await loadStats();
@@ -465,8 +478,8 @@ async function loadFeedbackTable() {
             `;
         }).join('');
         tbody.querySelectorAll('button[data-fb-action]').forEach(btn => {
-            btn.removeEventListener('click', handleFeedback);
-            btn.addEventListener('click', handleFeedback);
+            btn.removeEventListener('click', handleFeedbackAction);
+            btn.addEventListener('click', handleFeedbackAction);
         });
     } catch (err) {
         console.error(err);
@@ -474,7 +487,7 @@ async function loadFeedbackTable() {
     }
 }
 
-async function handleFeedback(e) {
+async function handleFeedbackAction(e) {
     const btn = e.currentTarget;
     const action = btn.dataset.fbAction;
     const id = btn.dataset.id;
@@ -558,12 +571,12 @@ function renderUsersTable() {
     }).join('');
 
     tbody.querySelectorAll('button[data-user-action]').forEach(btn => {
-        btn.removeEventListener('click', handleUser);
-        btn.addEventListener('click', handleUser);
+        btn.removeEventListener('click', handleUserAction);
+        btn.addEventListener('click', handleUserAction);
     });
 }
 
-async function handleUser(e) {
+async function handleUserAction(e) {
     const btn = e.currentTarget;
     const action = btn.dataset.userAction;
     const id = btn.dataset.id;
@@ -578,7 +591,7 @@ async function handleUser(e) {
         } else if (action === 'delete') {
             if (!confirm('Delete this user record?')) return;
             await deleteUserRecord(id);
-            showToast('User deleted', 'success');
+            showToast('User record deleted', 'success');
         }
         await loadUsersTable();
         await loadStats();
@@ -630,12 +643,12 @@ function renderCommentsTable() {
     `).join('');
 
     tbody.querySelectorAll('button[data-comment-action]').forEach(btn => {
-        btn.removeEventListener('click', handleComment);
-        btn.addEventListener('click', handleComment);
+        btn.removeEventListener('click', handleCommentAction);
+        btn.addEventListener('click', handleCommentAction);
     });
 }
 
-async function handleComment(e) {
+async function handleCommentAction(e) {
     const btn = e.currentTarget;
     if (!confirm('Delete this comment?')) return;
     try {
@@ -683,14 +696,22 @@ async function loadDownloadsTable() {
 async function loadSettings() {
     try {
         const s = await fetchSettings();
-        document.getElementById('setDiscord').value = s.discordUrl || '';
-        document.getElementById('setYoutube').value = s.youtubeUrl || '';
-        document.getElementById('setAnnouncement').value = s.announcement || '';
-        document.getElementById('setHeroTitle').value = s.heroTitle || '';
-        document.getElementById('setHeroSubtitle').value = s.heroSubtitle || '';
-        document.getElementById('setFeedbackEnabled').checked = s.feedbackEnabled !== false;
-        document.getElementById('setRegistrationOpen').checked = s.registrationOpen !== false;
-        document.getElementById('setMaintenance').checked = !!s.maintenance;
+        const el1 = document.getElementById('setDiscord');
+        const el2 = document.getElementById('setYoutube');
+        const el3 = document.getElementById('setAnnouncement');
+        const el4 = document.getElementById('setHeroTitle');
+        const el5 = document.getElementById('setHeroSubtitle');
+        const el6 = document.getElementById('setFeedbackEnabled');
+        const el7 = document.getElementById('setRegistrationOpen');
+        const el8 = document.getElementById('setMaintenance');
+        if (el1) el1.value = s.discordUrl || '';
+        if (el2) el2.value = s.youtubeUrl || '';
+        if (el3) el3.value = s.announcement || '';
+        if (el4) el4.value = s.heroTitle || '';
+        if (el5) el5.value = s.heroSubtitle || '';
+        if (el6) el6.checked = s.feedbackEnabled !== false;
+        if (el7) el7.checked = s.registrationOpen !== false;
+        if (el8) el8.checked = !!s.maintenance;
     } catch (err) {
         console.warn('loadSettings error', err);
     }
