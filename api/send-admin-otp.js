@@ -1,13 +1,16 @@
-// api/send-admin-otp.js (Unosend - Correct Body Format)
+// api/send-admin-otp.js (Resend – Custom Domain)
+import { Resend } from 'resend';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 
+// Init Firebase Admin
 if (!getApps().length) {
   const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_JSON);
   initializeApp({ credential: cert(serviceAccount) });
 }
 
 const db = getFirestore();
+const resend = new Resend(process.env.RESEND_API_KEY);
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'officialflickzzyt@gmail.com';
 
 export default async function handler(req, res) {
@@ -19,21 +22,20 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   if (email.toLowerCase().trim() !== OWNER_EMAIL.toLowerCase().trim()) {
+    console.warn(`❌ Unauthorized OTP attempt: ${email}`);
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  const UNOSEND_API_KEY = process.env.UNOSEND_API_KEY;
-  if (!UNOSEND_API_KEY) {
-    console.error('❌ UNOSEND_API_KEY is not set');
-    return res.status(500).json({ error: 'Email service not configured' });
-  }
-
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  await db.collection('adminOTP').doc(email).set({
-    otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000), createdAt: new Date(), attempts: 0
-  }, { merge: true });
+  try {
+    await db.collection('adminOTP').doc(email).set({
+      otp,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+      attempts: 0
+    }, { merge: true });
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family:'Inter',sans-serif; background:#0a0a0f; color:#f1f5f9; padding:2rem; text-align:center;">
@@ -48,25 +50,16 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
-  try {
-    const response = await fetch('https://api.unosend.co/v1/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${UNOSEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: `FlickZZ <noreply@flickzz.qzz.io>`,  // ✅ Simple string format
-        to: email,                                 // ✅ Simple string, not array
-        subject: '🔐 Admin Panel OTP – FlickZZ',
-        html: html
-      })
+    const { data, error } = await resend.emails.send({
+      from: 'FlickZZ <noreply@flickzz.qzz.io>',
+      to: email,
+      subject: '🔐 Admin Panel OTP – FlickZZ',
+      html: html
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('❌ Unosend error:', data);
-      return res.status(500).json({ error: data.message || 'Failed to send OTP' });
+    if (error) {
+      console.error('❌ Resend error:', error);
+      return res.status(500).json({ error: error.message });
     }
 
     console.log(`✅ Admin OTP sent to ${email}`, data);
