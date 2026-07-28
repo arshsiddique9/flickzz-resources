@@ -32,11 +32,10 @@ service cloud.firestore {
     //     'your-real-email@gmail.com'
     //   ];
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email in [
-        'your-email@gmail.com'   // ← REPLACE with YOUR Gmail (same as OWNER_EMAIL)
-        // 'co-admin@gmail.com'  // ← (optional) extra admin, uncomment if needed
-      ];
-    }
+  return isSignedIn() && request.auth.token.email in [
+    'officialflickzzyt@gmail.com'
+  ];
+}
 
     // ==== USERS ====
     match /users/{userId} {
