@@ -81,6 +81,11 @@
                     <i class="fas fa-sliders"></i> <span>Site Settings</span>
                 </button>
 
+                <!-- ✅ New Installation Tab -->
+                <button class="admin-nav-item" data-tab="installations">
+                    <i class="fas fa-server"></i> <span>Installations</span>
+                </button>
+
                 <div class="admin-nav-divider"></div>
 
                 <a class="admin-nav-item" href="index.html">
@@ -463,6 +468,62 @@
                         <div>
                             <label>Owner UID <button class="copy-btn" id="copyUidBtn" title="Copy"><i class="fas fa-copy"></i></button></label>
                             <div class="info-value mono" id="ownerUidDisplay">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ INSTALLATIONS TAB ============ -->
+            <div class="admin-tab-content" id="tab-installations">
+                <div class="admin-page-header">
+                    <h1><i class="fas fa-server"></i> Server Installations</h1>
+                    <p>Track all plugin installations across servers.</p>
+                </div>
+                <div class="admin-card">
+                    <!-- Filters -->
+                    <div class="toolbar" style="margin-bottom:1rem;">
+                        <div class="filter-group">
+                            <select id="installPluginFilter" class="select">
+                                <option value="">All Plugins</option>
+                                <option value="FzLandCore">FzLandCore</option>
+                                <option value="FzLandSell">FzLandSell</option>
+                            </select>
+                            <select id="installStatusFilter" class="select">
+                                <option value="">All Status</option>
+                                <option value="ONLINE">Online</option>
+                                <option value="OFFLINE">Offline</option>
+                            </select>
+                            <input type="text" id="installSearch" placeholder="Search by ID or License..." class="search-box">
+                        </div>
+                        <button class="btn btn-ghost" id="refreshInstallations"><i class="fas fa-rotate-right"></i> Refresh</button>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Plugin</th>
+                                    <th>License</th>
+                                    <th>Installation ID</th>
+                                    <th>Version</th>
+                                    <th>MC Version</th>
+                                    <th>First Seen</th>
+                                    <th>Last Seen</th>
+                                    <th>Status</th>
+                                    <th>Verifications</th>
+                                </tr>
+                            </thead>
+                            <tbody id="installationsTable"></tbody>
+                        </table>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:1rem;">
+                        <span id="installCount">Loading...</span>
+                        <div>
+                            <button class="btn btn-ghost btn-sm" id="prevInstallPage"><i class="fas fa-chevron-left"></i> Prev</button>
+                            <span id="installPageInfo">Page 1</span>
+                            <button class="btn btn-ghost btn-sm" id="nextInstallPage">Next <i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
