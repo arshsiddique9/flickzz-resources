@@ -1,18 +1,21 @@
-// login.js (Firebase built-in password reset)
+// login.js (Firebase built-in password reset + Admin Skip Email Verification)
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
-import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth } from "./firebase-config.js";
+import { getAuth, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth, OWNER_EMAIL } from "./firebase-config.js";
 
-// Redirect if already logged in and verified
+// Redirect if already logged in and verified (Admin ko skip)
 onAuthReady((state) => {
-  if (state.user && state.user.emailVerified) {
-    const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
-    sessionStorage.removeItem('redirectAfterLogin');
-    window.location.href = redirect;
-  } else if (state.user && !state.user.emailVerified) {
-    showToast('Please verify your email first.', 'warning');
-    auth.signOut();
+  if (state.user) {
+    const isAdmin = state.user.email === OWNER_EMAIL;
+    if (state.user.emailVerified || isAdmin) {
+      const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
+      sessionStorage.removeItem('redirectAfterLogin');
+      window.location.href = redirect;
+    } else {
+      showToast('Please verify your email first.', 'warning');
+      auth.signOut();
+    }
   }
 });
 
@@ -25,8 +28,26 @@ form.addEventListener('submit', async (e) => {
   const token = document.getElementById('cfToken').value;
   if (!token) return showToast('Complete security check', 'warning');
 
-  // Verify CAPTCHA
-  // ...
+  // CAPTCHA verification
+  let verified = false;
+  try {
+    const res = await fetch('/api/turnstile-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed');
+    verified = true;
+  } catch (err) {
+    showToast(err.message || 'Security check failed', 'error');
+    setLoading(submitBtn, false, 'Log In');
+    if (window.turnstile) turnstile.reset();
+    document.getElementById('cfToken').value = '';
+    return;
+  }
+
+  if (!verified) return;
 
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -34,7 +55,11 @@ form.addEventListener('submit', async (e) => {
   setLoading(submitBtn, true, 'Logging in...');
   try {
     const user = await signInEmail({ email, password });
-    if (!user.emailVerified) {
+    
+    // ✅ Admin skip email verification
+    const isAdmin = user.email === OWNER_EMAIL;
+    
+    if (!user.emailVerified && !isAdmin) {
       showToast('Please verify your email before logging in.', 'warning');
       await auth.signOut();
       setLoading(submitBtn, false, 'Log In');
@@ -43,10 +68,11 @@ form.addEventListener('submit', async (e) => {
       // Offer to resend verification
       if (confirm('Resend verification email?')) {
         await sendEmailVerification(user);
-        showToast('Verification email resent!', 'success');
+        showToast('Verification email resent! Check inbox/spam.', 'success');
       }
       return;
     }
+
     showToast('Welcome back! Redirecting...', 'success');
     setTimeout(() => {
       const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
