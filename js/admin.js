@@ -1,9 +1,23 @@
 // admin.js (Direct Login – No OTP)
 import { authState, onAuthReady, logout } from "./auth.js";
 import { isOwner, OWNER_EMAIL } from "./firebase-config.js";
-// ... saare imports (resources-api, feedback-api, etc.)
+import {
+    listResources, createResource, updateResource, deleteResource,
+    getPlatformStats, getResource,
+    CATEGORY_META, formatDate, formatNumber, formatFileSize
+} from "./resources-api.js";
+import {
+    listFeedback, deleteFeedback, toggleFeedbackVisibility
+} from "./feedback-api.js";
+import {
+    listUsers, setUserBanned, setUserAdmin, deleteUserRecord,
+    listAllComments, deleteAnyComment, listAllDownloads, getRecentUsers
+} from "./users-api.js";
+import {
+    fetchSettings, saveSettings, DEFAULT_SETTINGS
+} from "./settings-api.js";
+import { showToast, translateFirebaseError } from "./main.js";
 
-// DOM REFS
 const accessDenied = document.getElementById('accessDenied');
 const loginRequired = document.getElementById('loginRequired');
 const adminContent = document.getElementById('adminContent');
@@ -41,4 +55,35 @@ function unlock() {
     bootstrap();
 }
 
-// ... baaki saara code (bootstrap, loadStats, bindSidebar, etc.) same rahega
+// ============ BOOTSTRAP ============
+async function bootstrap() {
+    const u = authState.user;
+    const name = u.displayName || u.email.split('@')[0];
+    document.getElementById('adminUserName').textContent = name;
+    document.getElementById('adminUserEmail').textContent = u.email;
+    document.getElementById('dashGreetName').textContent = name;
+    document.getElementById('ownerEmailDisplay').textContent = u.email;
+    document.getElementById('ownerUidDisplay').textContent = u.uid;
+
+    bindSidebar();
+    bindMobileNav();
+    bindForm();
+    bindAdminSearch();
+    bindLogout();
+    bindCopyUid();
+    bindSettingsForm();
+
+    await Promise.all([
+        loadStats(),
+        loadResourcesTable(),
+        loadFeedbackTable(),
+        loadUsersTable(),
+        loadCommentsTable(),
+        loadDownloadsTable(),
+        loadSettings(),
+        loadDashboardLists()
+    ]);
+}
+
+// ... baaki saare functions (bindSidebar, loadStats, loadResourcesTable, submitForm, etc.) same rahenge
+// (copy from your existing admin.js – just remove showGate, showLockout, OTP related code)
