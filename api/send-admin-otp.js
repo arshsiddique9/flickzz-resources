@@ -1,4 +1,4 @@
-// api/send-admin-otp.js (Unosend – Correct Base URL)
+// api/send-admin-otp.js (Unosend - Correct Body Format)
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 
@@ -49,18 +49,15 @@ export default async function handler(req, res) {
 </html>`;
 
   try {
-    const response = await fetch('https://api.unosend.co/v1/emails', {  // ✅ Correct Base URL
+    const response = await fetch('https://api.unosend.co/v1/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${UNOSEND_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: {
-          email: 'noreply@flickzz.qzz.io',
-          name: 'FlickZZ'
-        },
-        to: [{ email }],
+        from: `FlickZZ <noreply@flickzz.qzz.io>`,  // ✅ Simple string format
+        to: email,                                 // ✅ Simple string, not array
         subject: '🔐 Admin Panel OTP – FlickZZ',
         html: html
       })
