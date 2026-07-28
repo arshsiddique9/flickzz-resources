@@ -1,14 +1,14 @@
-import { Resend } from 'resend';
+// api/resend-verification-code.js (Unosend)
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 
+// Init Firebase Admin
 if (!getApps().length) {
   const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_JSON);
   initializeApp({ credential: cert(serviceAccount) });
 }
 
 const db = getFirestore();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,6 +17,12 @@ export default async function handler(req, res) {
 
   const { uid, email } = req.body;
   if (!uid || !email) return res.status(400).json({ error: 'Missing uid or email' });
+
+  const UNOSEND_API_KEY = process.env.UNOSEND_API_KEY;
+  if (!UNOSEND_API_KEY) {
+    console.error('❌ UNOSEND_API_KEY is not set');
+    return res.status(500).json({ error: 'Email service not configured' });
+  }
 
   try {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -39,14 +45,31 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
-    await resend.emails.send({
-      from: 'FlickZZ <onboarding@resend.dev>',
-      to: email,
-      subject: 'New verification code – FlickZZ',
-      html: html
+    const response = await fetch('https://api.unosend.com/v1/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${UNOSEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: {
+          email: 'noreply@flickzz.qzz.io',
+          name: 'FlickZZ'
+        },
+        to: [{ email }],
+        subject: 'New verification code – FlickZZ',
+        html: html
+      })
     });
-    console.log(`✅ Resend email sent to ${email}`);
-    res.status(200).json({ success: true });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('❌ Unosend error:', data);
+      return res.status(500).json({ error: data.message || 'Failed to send email' });
+    }
+
+    console.log(`✅ Resend email sent to ${email}`, data);
+    res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('❌ Error:', err);
     res.status(500).json({ error: err.message });
