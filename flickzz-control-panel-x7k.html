@@ -21,8 +21,7 @@
                 <div class="empty-state">
                     <i class="fas fa-ban" style="color:var(--danger);"></i>
                     <h3>Access Denied</h3>
-                    <p>This area is restricted to the platform owner only.<br>
-                    Your activity has been logged.</p>
+                    <p>This area is restricted to the platform owner only.<br>Your activity has been logged.</p>
                     <a href="index.html" class="btn btn-primary">Return to Home</a>
                 </div>
             </div>
@@ -45,8 +44,51 @@
 
     <!-- =========== ADMIN PANEL =========== -->
     <div id="adminContent" class="hidden">
-        <!-- ... Sidebar, top bar, tabs sab pehle jaisa ... -->
-        <!-- (same as before, no gate) -->
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-brand">
+                <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                <div>
+                    <div class="admin-brand-name">FlickZZ</div>
+                    <div class="admin-brand-tag"><i class="fas fa-crown"></i> Owner Panel</div>
+                </div>
+            </div>
+            <nav class="admin-nav">
+                <button class="admin-nav-item active" data-tab="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</button>
+                <button class="admin-nav-item" data-tab="upload"><i class="fas fa-cloud-upload-alt"></i> Upload Resource</button>
+                <button class="admin-nav-item" data-tab="manage"><i class="fas fa-folder-open"></i> Manage Resources</button>
+                <button class="admin-nav-item" data-tab="users"><i class="fas fa-users"></i> Users</button>
+                <button class="admin-nav-item" data-tab="comments"><i class="fas fa-comment-dots"></i> Comments</button>
+                <button class="admin-nav-item" data-tab="feedback"><i class="fas fa-star-half-stroke"></i> Feedback</button>
+                <button class="admin-nav-item" data-tab="downloads"><i class="fas fa-chart-line"></i> Downloads</button>
+                <button class="admin-nav-item" data-tab="settings"><i class="fas fa-sliders"></i> Site Settings</button>
+                <div class="admin-nav-divider"></div>
+                <a class="admin-nav-item" href="index.html"><i class="fas fa-home"></i> View Site</a>
+                <button class="admin-nav-item" id="adminLogoutBtn"><i class="fas fa-right-from-bracket"></i> Logout</button>
+            </nav>
+            <div class="admin-sidebar-footer">
+                <div class="admin-user-info">
+                    <div class="admin-user-avatar"><i class="fas fa-crown"></i></div>
+                    <div class="admin-user-details">
+                        <div class="admin-user-name" id="adminUserName">Owner</div>
+                        <div class="admin-user-email" id="adminUserEmail">—</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Top Bar -->
+        <header class="admin-topbar">
+            <button class="admin-menu-toggle" id="adminMenuToggle"><i class="fas fa-bars"></i></button>
+            <div class="admin-topbar-title" id="adminTabTitle">Dashboard</div>
+            <button class="admin-menu-toggle" id="adminThemeBtn"><i class="fas fa-moon"></i></button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- All tabs same as before – dashboard, upload, manage, users, comments, feedback, downloads, settings -->
+            <!-- (copy from your existing file, no gate HTML) -->
+        </main>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
