@@ -3,6 +3,70 @@
    Likes, Owner badge, Threaded replies, Leaderboard, Contact lists
    ============================================ */
 
+/* ============ CLOUDFLARE TURNSTILE FIX ============ */
+.cf-turnstile-wrap {
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+}
+.cf-turnstile {
+    max-width: 100%;
+    width: 100%;
+}
+.cf-turnstile iframe {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 8px;
+}
+
+/* Fix login page layout - remove any floating nav */
+body.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow-x: hidden;
+}
+body.auth-page .navbar,
+body.auth-page nav.navbar,
+body.auth-page > ul.nav-links {
+    display: none !important;
+}
+.auth-wrapper {
+    width: 100%;
+    max-width: 440px;
+    z-index: 10;
+    position: relative;
+}
+.auth-card {
+    background: var(--bg-card, rgba(20, 20, 30, 0.85));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border, rgba(255,255,255,0.08));
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 1.75rem;
+    font-weight: 800;
+}
+.logo-img-lg { width: 48px; height: 48px; border-radius: 12px; }
+.logo-accent { color: var(--primary, #6366f1); }
+
+
 /* ---------- CONTACT LIST (about / terms / privacy) ---------- */
 .contact-list {
     list-style: none;
