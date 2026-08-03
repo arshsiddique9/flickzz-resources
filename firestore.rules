@@ -16,27 +16,29 @@ service cloud.firestore {
     // ===== USERS =====
     match /users/{userId} {
       allow read: if isSignedIn();
+      allow list: if isAdmin();
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // ===== RESOURCES =====
+    // ===== RESOURCES ===== (public read for guests!)
     match /resources/{resourceId} {
       allow read: if true;
+      allow list: if true;
       allow create, update, delete: if isAdmin();
-      
+
       match /ratings/{userId} {
         allow read: if true;
         allow write: if isSignedIn() && request.auth.uid == userId;
       }
-      
+
       match /likes/{userId} {
         allow read: if true;
         allow create, delete: if isSignedIn() && request.auth.uid == userId;
         allow update: if false;
       }
-      
+
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn()
@@ -55,6 +57,7 @@ service cloud.firestore {
     match /downloads/{downloadId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isAdmin();
       allow delete: if isAdmin();
       allow update: if false;
     }
@@ -75,48 +78,14 @@ service cloud.firestore {
         && request.resource.data.rating <= 5
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 500
-        && request.resource.data.hidden == false;
+        && request.resource.data.text.size() <= 500;
       allow update, delete: if isAdmin();
-    }
-
-    // ===== EMAIL VERIFICATIONS (for signup OTP) =====
-    match /emailVerifications/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
-      allow delete: if isAdmin();
-    }
-
-    // ===== ADMIN OTP (for admin panel) =====
-    match /adminOTP/{email} {
-      allow read, write: if isSignedIn() && request.auth.token.email == email;
-      allow delete: if isAdmin();
-    }
-
-    // ===== PASSWORD RESET TOKENS =====
-    match /passwordResetTokens/{token} {
-      allow read, write: if false;  // server-side only via Admin SDK
     }
 
     // ===== PUBLIC STATS (for homepage guest view) =====
     match /publicStats/{docId} {
       allow read: if true;
       allow write: if isSignedIn();
-    }
-
-    // ===== INSTALLATIONS (plugin license tracking) =====
-    match /installations/{installationId} {
-      allow read: if isAdmin();   // only admins can see installations
-      allow create: if isSignedIn();  // plugin verification can create
-      allow update: if isSignedIn();  // plugin heartbeat updates
-      allow delete: if isAdmin();
-    }
-
-    // ===== LICENSES (plugin license management) =====
-    match /licenses/{licenseId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-      // Note: plugin verification reads license validity, so we allow read for signed-in
-      allow read: if isSignedIn();  // allow signed-in to check license status during verification
     }
 
     // Default deny
