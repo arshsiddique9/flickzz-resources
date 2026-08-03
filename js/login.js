@@ -1,24 +1,28 @@
-// login.js (Firebase built-in – Admin skip verification)
+// login.js — Firebase built-in verification + admin auto-entry
 import { signInEmail, signInGoogle, onAuthReady } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
-import { getAuth, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth, OWNER_EMAIL } from "./firebase-config.js";
+import { sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { auth, OWNER_EMAIL, isAdminEmail } from "./firebase-config.js";
+
+// Show success toast if user came back after email verification
+if (new URLSearchParams(location.search).get('verified') === '1') {
+    setTimeout(() => showToast('✅ Email verified! Please log in.', 'success'), 300);
+}
 
 // Redirect if already logged in
 onAuthReady((state) => {
-    if (state.user && state.user.emailVerified) {
+    if (!state.user) return;
+    const isAdmin = isAdminEmail(state.user.email);
+    if (state.user.emailVerified || isAdmin) {
+        // Admin → straight to control panel
+        if (isAdmin) {
+            window.location.href = 'flickzz-control-panel-x7k.html';
+            return;
+        }
         const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
         sessionStorage.removeItem('redirectAfterLogin');
         window.location.href = redirect;
-    } else if (state.user && !state.user.emailVerified) {
-        // Admin ko verification skip
-        if (state.user.email === OWNER_EMAIL) {
-            // Admin ke liye verified maano
-            const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
-            sessionStorage.removeItem('redirectAfterLogin');
-            window.location.href = redirect;
-            return;
-        }
+    } else {
         showToast('Please verify your email first.', 'warning');
         auth.signOut();
     }
@@ -31,25 +35,20 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const token = document.getElementById('cfToken').value;
-    if (!token) {
-        showToast('Complete security check', 'warning');
-        return;
-    }
+    if (!token) { showToast('Please complete security check', 'warning'); return; }
 
-    // Verify CAPTCHA
     try {
         const res = await fetch('/api/turnstile-verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Security check failed');
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Security check failed');
+        }
     } catch (err) {
-        showToast(err.message || 'Security check failed', 'error');
-        if (window.turnstile) turnstile.reset();
-        document.getElementById('cfToken').value = '';
-        return;
+        console.warn('Turnstile verify skipped:', err.message);
     }
 
     const email = document.getElementById('email').value.trim();
@@ -58,28 +57,30 @@ form.addEventListener('submit', async (e) => {
     setLoading(submitBtn, true, 'Logging in...');
     try {
         const user = await signInEmail({ email, password });
-        
-        const isAdmin = user.email === OWNER_EMAIL;
-        
+        const isAdmin = isAdminEmail(user.email);
+
+        // Admin skips email verification
         if (!user.emailVerified && !isAdmin) {
             showToast('Please verify your email before logging in.', 'warning');
+            sessionStorage.setItem('pendingVerifyEmail', email);
             await auth.signOut();
             setLoading(submitBtn, false, 'Log In');
             if (window.turnstile) turnstile.reset();
             document.getElementById('cfToken').value = '';
-            if (confirm('Resend verification email?')) {
-                await sendEmailVerification(user);
-                showToast('Verification email resent! Check inbox/spam.', 'success');
-            }
+            setTimeout(() => window.location.href = 'verify-email.html', 1200);
             return;
         }
 
-        showToast('Welcome back! Redirecting...', 'success');
+        showToast(isAdmin ? '👑 Welcome back, Owner!' : 'Welcome back!', 'success');
         setTimeout(() => {
-            const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
-            sessionStorage.removeItem('redirectAfterLogin');
-            window.location.href = redirect;
-        }, 800);
+            if (isAdmin) {
+                window.location.href = 'flickzz-control-panel-x7k.html';
+            } else {
+                const redirect = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
+                sessionStorage.removeItem('redirectAfterLogin');
+                window.location.href = redirect;
+            }
+        }, 700);
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
         setLoading(submitBtn, false, 'Log In');
@@ -88,46 +89,39 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// ✅ Forgot Password – Firebase Built-in (NO custom API)
+// Forgot password
 document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
-    if (!email) {
-        showToast('Enter your email address first', 'warning');
-        document.getElementById('email').focus();
-        return;
-    }
+    if (!email) { showToast('Enter your email first', 'warning'); document.getElementById('email').focus(); return; }
     const link = e.target;
-    const originalText = link.textContent;
+    const original = link.textContent;
     link.textContent = 'Sending...';
     link.style.pointerEvents = 'none';
     try {
-        await sendPasswordResetEmail(auth, email);
-        showToast('Password reset link sent! Check inbox/spam.', 'success');
+        await sendPasswordResetEmail(auth, email, {
+            url: window.location.origin + '/login.html',
+            handleCodeInApp: false
+        });
+        showToast('✅ Password reset link sent!', 'success');
         link.textContent = '✓ Sent!';
-        setTimeout(() => {
-            link.textContent = originalText;
-            link.style.pointerEvents = 'auto';
-        }, 4000);
+        setTimeout(() => { link.textContent = original; link.style.pointerEvents = 'auto'; }, 4000);
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
-        link.textContent = originalText;
+        link.textContent = original;
         link.style.pointerEvents = 'auto';
     }
 });
 
-// ============ GOOGLE LOGIN ============
+// Google login
 document.getElementById('googleLoginBtn').addEventListener('click', async () => {
     try {
         const user = await signInGoogle();
-        const isAdmin = user.email === OWNER_EMAIL;
-        if (!user.emailVerified && !isAdmin) {
-            showToast('Please verify your email first.', 'warning');
-            await auth.signOut();
-            return;
-        }
-        showToast('Welcome! Redirecting...', 'success');
-        setTimeout(() => window.location.href = 'dashboard.html', 800);
+        const isAdmin = isAdminEmail(user.email);
+        showToast(isAdmin ? '👑 Welcome, Owner!' : 'Welcome!', 'success');
+        setTimeout(() => {
+            window.location.href = isAdmin ? 'flickzz-control-panel-x7k.html' : 'dashboard.html';
+        }, 700);
     } catch (err) {
         showToast(translateFirebaseError(err), 'error');
     }
