@@ -8,7 +8,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// 🔧 Your real Firebase config (safe to be public)
+// Firebase config (public-safe)
 const firebaseConfig = {
     apiKey: "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0",
     authDomain: "flickzz-resources.firebaseapp.com",
@@ -18,13 +18,11 @@ const firebaseConfig = {
     appId: "1:554417592538:web:be87ac778712df5c032de3"
 };
 
+// 👑 OWNER CONFIG
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
-export const OWNER_UID = "Ib2vSHtdHPcARsU26qk20bsvvAv2";
-export const ADMIN_ACCESS_CODE = "flickzzmalikkoaccessdo2026";
-export const ADMIN_EMAILS = [];
+export const OWNER_UID = ""; // leave empty — matched by email only
+export const ADMIN_EMAILS = ["officialflickzzyt@gmail.com"];
 
-// ============================================
-// Initialize Firebase
 // ============================================
 let app, auth, db, storage;
 let firebaseReady = false;
@@ -35,9 +33,9 @@ try {
     db = getFirestore(app);
     storage = getStorage(app);
     firebaseReady = true;
-    console.log("✅ Firebase initialized successfully");
+    console.log("✅ Firebase initialized");
 } catch (err) {
-    console.error("Firebase initialization error:", err);
+    console.error("Firebase init error:", err);
     firebaseReady = false;
 }
 
@@ -55,10 +53,5 @@ export function isAdminEmail(email) {
 
 export function isOwner(user) {
     if (!user || !user.email) return false;
-    const emailMatch = user.email.toLowerCase().trim() === OWNER_EMAIL.toLowerCase().trim();
-    if (!emailMatch) return false;
-    if (OWNER_UID && OWNER_UID.trim() !== "") {
-        return user.uid === OWNER_UID.trim();
-    }
-    return true;
+    return user.email.toLowerCase().trim() === OWNER_EMAIL.toLowerCase().trim();
 }
