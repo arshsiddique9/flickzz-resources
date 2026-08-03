@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/features.css">
-    <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="auth-page">
@@ -49,8 +48,13 @@
                     </div>
                 </div>
 
-                <!-- Cloudflare Turnstile Widget -->
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAADiBJBn36bVOyOVZ" data-callback="onTurnstileSuccess"></div>
+                <div class="cf-turnstile-wrap">
+                    <div class="cf-turnstile"
+                         data-sitekey="0x4AAAAAADiBJBn36bVOyOVZ"
+                         data-callback="onTurnstileSuccess"
+                         data-theme="dark"
+                         data-size="flexible"></div>
+                </div>
                 <input type="hidden" id="cfToken" name="cf-turnstile-response">
 
                 <button type="submit" class="btn btn-primary btn-block" id="loginSubmit">
@@ -62,7 +66,6 @@
                 </button>
             </form>
 
-            <!-- Forgot Password Link -->
             <div class="auth-footer" style="margin-top: 1rem;">
                 <a href="#" id="forgotPasswordLink" style="color: var(--primary);">Forgot password?</a>
             </div>
@@ -81,19 +84,9 @@
     <script type="module" src="js/login.js"></script>
     <script src="js/protection.js"></script>
     <script>
-        // Turnstile success callback – store token in hidden input
         window.onTurnstileSuccess = function(token) {
             document.getElementById('cfToken').value = token;
         };
     </script>
 </body>
 </html>
-
-<ul class="nav-links" id="navLinks">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="resources.html">Resources</a></li>
-    <li><a href="leaderboard.html">Leaderboard</a></li>
-    <li><a href="about.html">About</a></li>
-    <li class="auth-only hidden"><a href="dashboard.html">Dashboard</a></li>
-    <li><a href="plugin-verification.html"><i class="fas fa-shield-halved"></i> License</a></li>
-</ul>
