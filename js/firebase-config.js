@@ -8,7 +8,6 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// Firebase config (public-safe)
 const firebaseConfig = {
     apiKey: "AIzaSyCMpZtzf3CSrVztGihysYL3M4gC6ZgUzG0",
     authDomain: "flickzz-resources.firebaseapp.com",
@@ -18,12 +17,9 @@ const firebaseConfig = {
     appId: "1:554417592538:web:be87ac778712df5c032de3"
 };
 
-// 👑 OWNER CONFIG
 export const OWNER_EMAIL = "officialflickzzyt@gmail.com";
-export const OWNER_UID = ""; // leave empty — matched by email only
 export const ADMIN_EMAILS = ["officialflickzzyt@gmail.com"];
 
-// ============================================
 let app, auth, db, storage;
 let firebaseReady = false;
 
@@ -41,17 +37,12 @@ try {
 
 export { app, auth, db, storage, firebaseReady };
 
-// ============================================
-// Admin helpers
-// ============================================
 export function isAdminEmail(email) {
     if (!email) return false;
     const e = email.toLowerCase().trim();
-    if (e === OWNER_EMAIL.toLowerCase().trim()) return true;
-    return ADMIN_EMAILS.some(a => a.toLowerCase().trim() === e);
+    return e === OWNER_EMAIL.toLowerCase().trim() || ADMIN_EMAILS.includes(e);
 }
 
 export function isOwner(user) {
-    if (!user || !user.email) return false;
-    return user.email.toLowerCase().trim() === OWNER_EMAIL.toLowerCase().trim();
+    return user?.email?.toLowerCase().trim() === OWNER_EMAIL.toLowerCase().trim();
 }
