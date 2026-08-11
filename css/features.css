@@ -426,3 +426,244 @@ body.auth-page > ul.nav-links {
     .lb-user i { font-size: 1.2rem; }
     .comment-reply { margin-left: 1rem; }
 }
+
+/* ============ PREMIUM LEADERBOARD ============ */
+.lb-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.lb-hero-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+    animation: float 3s ease-in-out infinite;
+}
+.lb-hero-icon i {
+    font-size: 2.5rem;
+    color: #000;
+}
+.lb-hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+.lb-hero-sub {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.lb-tabs-premium {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+}
+.lb-tab-premium {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.5rem;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.lb-tab-premium:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+.lb-tab-premium.active {
+    background: linear-gradient(135deg, var(--primary), #8b5cf6);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+}
+.lb-tab-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.lb-tab-premium.active .lb-tab-icon {
+    background: rgba(255,255,255,0.2);
+}
+
+.lb-panel-premium {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.lb-header-premium {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+.lb-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.lb-header-left i {
+    color: var(--primary);
+}
+.lb-count-badge {
+    background: var(--bg);
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.lb-list-premium {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.lb-row-premium {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+.lb-row-premium:hover {
+    transform: translateX(8px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.lb-top-premium {
+    background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02));
+    border-color: rgba(255,215,0,0.2);
+}
+
+.lb-rank-premium {
+    flex-shrink: 0;
+}
+.lb-medal {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+.lb-medal-num {
+    position: relative;
+    z-index: 1;
+}
+
+.lb-user-premium {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.lb-avatar {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary), #8b5cf6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+}
+.lb-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.lb-username {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text);
+}
+.lb-owner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.lb-count-premium {
+    text-align: right;
+}
+.lb-count-num {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+}
+.lb-count-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lb-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+.lb-empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: var(--bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+    .lb-tabs-premium { flex-direction: column; }
+    .lb-tab-premium { justify-content: center; }
+    .lb-row-premium { padding: 1rem; gap: 0.75rem; }
+    .lb-avatar { width: 36px; height: 36px; font-size: 0.9rem; }
+    .lb-medal { width: 40px; height: 40px; font-size: 1rem; }
+    .lb-count-num { font-size: 1.25rem; }
+}
