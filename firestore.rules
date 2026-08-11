@@ -13,7 +13,6 @@ service cloud.firestore {
       ];
     }
 
-    // ===== USERS =====
     match /users/{userId} {
       allow read: if isSignedIn();
       allow list: if isAdmin();
@@ -22,7 +21,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ===== RESOURCES ===== (public read for guests!)
     match /resources/{resourceId} {
       allow read: if true;
       allow list: if true;
@@ -42,10 +40,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn()
-          && request.resource.data.userId == request.auth.uid
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 2000;
+          && request.resource.data.userId == request.auth.uid;
         allow delete: if isSignedIn() && (
           resource.data.userId == request.auth.uid || isAdmin()
         );
@@ -53,7 +48,6 @@ service cloud.firestore {
       }
     }
 
-    // ===== DOWNLOADS =====
     match /downloads/{downloadId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
@@ -62,33 +56,23 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // ===== SITE SETTINGS =====
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ===== FEEDBACK =====
     match /feedback/{feedbackId} {
       allow read: if true;
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.rating is number
-        && request.resource.data.rating >= 1
-        && request.resource.data.rating <= 5
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 500;
+        && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
-    // ===== PUBLIC STATS (for homepage guest view) =====
     match /publicStats/{docId} {
       allow read: if true;
       allow write: if isSignedIn();
     }
 
-    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }
