@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard — FlickZZ Resources</title>
-    <meta name="description" content="Top downloaders, raters, likers and commenters on FlickZZ Resources.">
     <link rel="icon" type="image/png" href="images/logo.png">
-    <link rel="apple-touch-icon" href="images/logo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -49,22 +47,37 @@
         </div>
     </nav>
 
-    <section class="section" style="padding-top: 120px;">
+    <section class="section" style="padding-top: 100px; min-height: 80vh;">
         <div class="container">
-            <div class="section-header" style="text-align:center;">
-                <h2 class="section-title"><i class="fas fa-trophy" style="color:var(--warning);"></i> Community Leaderboard</h2>
-                <p class="section-subtitle">Top members making FlickZZ awesome. Updated live.</p>
+            <div class="lb-hero">
+                <div class="lb-hero-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h1 class="lb-hero-title">Community <span class="gradient-text">Leaderboard</span></h1>
+                <p class="lb-hero-sub">Top members making FlickZZ awesome. Updated live.</p>
             </div>
 
-            <div class="leaderboard-tabs">
-                <button class="lb-tab active" data-tab="downloaders"><i class="fas fa-download"></i> Top Downloaders</button>
-                <button class="lb-tab" data-tab="raters"><i class="fas fa-star"></i> Top Raters</button>
-                <button class="lb-tab" data-tab="likers"><i class="fas fa-heart"></i> Top Likers</button>
-                <button class="lb-tab" data-tab="commenters"><i class="fas fa-comments"></i> Top Commenters</button>
+            <div class="lb-tabs-premium">
+                <button class="lb-tab-premium active" data-tab="downloaders">
+                    <div class="lb-tab-icon"><i class="fas fa-download"></i></div>
+                    <span>Top Downloaders</span>
+                </button>
+                <button class="lb-tab-premium" data-tab="raters">
+                    <div class="lb-tab-icon"><i class="fas fa-star"></i></div>
+                    <span>Top Raters</span>
+                </button>
+                <button class="lb-tab-premium" data-tab="likers">
+                    <div class="lb-tab-icon"><i class="fas fa-heart"></i></div>
+                    <span>Top Likers</span>
+                </button>
+                <button class="lb-tab-premium" data-tab="commenters">
+                    <div class="lb-tab-icon"><i class="fas fa-comments"></i></div>
+                    <span>Top Commenters</span>
+                </button>
             </div>
 
-            <div class="leaderboard-panel" id="lbPanel">
-                <div class="skeleton-card" style="height: 300px;"></div>
+            <div class="lb-panel-premium" id="lbPanel">
+                <div class="skeleton-card" style="height: 400px; border-radius: 20px;"></div>
             </div>
         </div>
     </section>
@@ -78,15 +91,6 @@
     </footer>
 
     <div class="toast-container" id="toastContainer"></div>
-
-    <ul class="nav-links" id="navLinks">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="resources.html">Resources</a></li>
-    <li><a href="leaderboard.html" class="active">Leaderboard</a></li>
-    <li><a href="about.html">About</a></li>
-    <li class="auth-only hidden"><a href="dashboard.html">Dashboard</a></li>
-    <li><a href="plugin-verification.html"><i class="fas fa-shield-halved"></i> License</a></li>
-</ul>
 
     <script type="module" src="js/site-config.js"></script>
     <script type="module" src="js/firebase-config.js"></script>
