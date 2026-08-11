@@ -1,9 +1,9 @@
-// Leaderboard page logic — top downloaders, raters, likers, commenters
+// Leaderboard — Premium design with custom SVG medals, no emojis
 import { getTopDownloaders, getTopRaters, getTopLikers, getTopCommenters } from "./leaderboard-api.js";
 import { OWNER_EMAIL } from "./firebase-config.js";
 
 const panel = document.getElementById('lbPanel');
-const tabs = document.querySelectorAll('.lb-tab');
+const tabs = document.querySelectorAll('.lb-tab-premium');
 
 const LABELS = {
     downloaders: { metric: 'downloads', icon: 'fa-download', title: 'Top Downloaders' },
@@ -12,11 +12,10 @@ const LABELS = {
     commenters:  { metric: 'comments',  icon: 'fa-comments', title: 'Top Commenters' }
 };
 
-// Cache so switching tabs is instant after first load
 const cache = {};
 
 async function load(tab) {
-    panel.innerHTML = '<div class="skeleton-card" style="height: 300px;"></div>';
+    panel.innerHTML = '<div class="skeleton-card" style="height: 400px; border-radius: 20px;"></div>';
 
     let data = cache[tab];
     if (!data) {
@@ -35,12 +34,27 @@ async function load(tab) {
     render(tab, data || []);
 }
 
+function getMedalSVG(rank) {
+    const colors = {
+        1: { bg: 'linear-gradient(135deg, #FFD700, #FFA500)', text: '#000', glow: 'rgba(255,215,0,0.4)' },
+        2: { bg: 'linear-gradient(135deg, #C0C0C0, #A0A0A0)', text: '#000', glow: 'rgba(192,192,192,0.4)' },
+        3: { bg: 'linear-gradient(135deg, #CD7F32, #8B4513)', text: '#fff', glow: 'rgba(205,127,50,0.4)' }
+    };
+    const c = colors[rank] || { bg: 'var(--bg-card)', text: 'var(--text-muted)', glow: 'transparent' };
+    
+    return `
+        <div class="lb-medal" style="background: ${c.bg}; color: ${c.text}; box-shadow: 0 4px 20px ${c.glow};">
+            <span class="lb-medal-num">${rank}</span>
+        </div>
+    `;
+}
+
 function render(tab, data) {
     const meta = LABELS[tab];
     if (!data.length) {
         panel.innerHTML = `
-            <div class="empty-state">
-                <i class="fas ${meta.icon}"></i>
+            <div class="lb-empty">
+                <div class="lb-empty-icon"><i class="fas ${meta.icon}"></i></div>
                 <h3>No data yet</h3>
                 <p>Once members start interacting, the leaderboard will populate here.</p>
             </div>
@@ -50,34 +64,41 @@ function render(tab, data) {
 
     const rows = data.map((entry, i) => {
         const rank = i + 1;
-        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
         const isOwnerRow = entry.userEmail && OWNER_EMAIL &&
             entry.userEmail.toLowerCase().trim() === OWNER_EMAIL.toLowerCase().trim();
         const ownerBadge = isOwnerRow
-            ? '<span class="owner-badge"><i class="fas fa-crown"></i> Owner</span>'
+            ? '<span class="lb-owner-badge"><i class="fas fa-crown"></i> Owner</span>'
             : '';
+        
         return `
-            <div class="lb-row ${rank <= 3 ? 'lb-top' : ''} ${isOwnerRow ? 'lb-owner' : ''}">
-                <div class="lb-rank">${medal}</div>
-                <div class="lb-user">
-                    <i class="fas fa-user-circle"></i>
-                    <span>${escapeHtml(entry.userName || 'User')}</span>
-                    ${ownerBadge}
+            <div class="lb-row-premium ${rank <= 3 ? 'lb-top-premium' : ''}">
+                <div class="lb-rank-premium">${getMedalSVG(rank)}</div>
+                <div class="lb-user-premium">
+                    <div class="lb-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="lb-user-info">
+                        <span class="lb-username">${escapeHtml(entry.userName || 'User')}</span>
+                        ${ownerBadge}
+                    </div>
                 </div>
-                <div class="lb-count">
-                    <strong>${entry.count}</strong>
-                    <span>${meta.metric}</span>
+                <div class="lb-count-premium">
+                    <span class="lb-count-num">${entry.count}</span>
+                    <span class="lb-count-label">${meta.metric}</span>
                 </div>
             </div>
         `;
     }).join('');
 
     panel.innerHTML = `
-        <div class="lb-header">
-            <h3><i class="fas ${meta.icon}"></i> ${meta.title}</h3>
-            <span class="lb-subtitle">Top ${data.length} members</span>
+        <div class="lb-header-premium">
+            <div class="lb-header-left">
+                <i class="fas ${meta.icon}"></i>
+                <h3>${meta.title}</h3>
+            </div>
+            <span class="lb-count-badge">Top ${data.length}</span>
         </div>
-        <div class="lb-list">${rows}</div>
+        <div class="lb-list-premium">${rows}</div>
     `;
 }
 
@@ -89,7 +110,6 @@ tabs.forEach(t => {
     });
 });
 
-// Initial load
 load('downloaders');
 
 function escapeHtml(s) {
