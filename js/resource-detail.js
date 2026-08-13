@@ -47,6 +47,26 @@ async function loadDetail() {
     }
 }
 
+// Helper to render markdown safely
+function renderMarkdown(text) {
+    if (!text) return '';
+    try {
+        // Check if marked is available globally
+        if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            return marked.parse(text);
+        }
+        // Check for marked via import
+        if (typeof marked !== 'undefined' && typeof marked === 'function') {
+            return marked(text);
+        }
+        // Fallback: simple HTML
+        return text.replace(/\n/g, '<br>');
+    } catch (e) {
+        console.warn('Markdown parse failed:', e);
+        return text.replace(/\n/g, '<br>');
+    }
+}
+
 function renderDetail(r) {
     const cat = CATEGORY_META[r.category] || { label: r.category, icon: 'fa-box' };
     const rating = avgRating(r).toFixed(1);
@@ -84,10 +104,10 @@ function renderDetail(r) {
         <div class="detail-description markdown-body" id="resourceDescription"></div>
     `;
 
-    // ✅ Render Markdown description
+    // ✅ Render Markdown description with fallback
     const descEl = document.getElementById('resourceDescription');
     if (descEl && r.description) {
-        descEl.innerHTML = marked.parse(r.description);
+        descEl.innerHTML = renderMarkdown(r.description);
     }
 
     document.getElementById('downloadBtn').addEventListener('click', handleDownload);
@@ -275,14 +295,12 @@ async function loadComments() {
             return;
         }
 
-        // Build tree: top-level (no parentId) + replies grouped by parentId
         const topLevel = comments.filter(c => !c.parentId);
         const repliesByParent = {};
         comments.filter(c => c.parentId).forEach(c => {
             if (!repliesByParent[c.parentId]) repliesByParent[c.parentId] = [];
             repliesByParent[c.parentId].push(c);
         });
-        // Replies should be ascending (oldest first under each thread)
         Object.values(repliesByParent).forEach(arr => arr.sort((a, b) => {
             const at = a.createdAt?.seconds || 0;
             const bt = b.createdAt?.seconds || 0;
@@ -291,7 +309,6 @@ async function loadComments() {
 
         list.innerHTML = topLevel.map(c => commentTemplate(c, 0)).join('');
 
-        // Inject replies
         topLevel.forEach(c => {
             const slot = list.querySelector(`[data-children="${c.id}"]`);
             const reps = repliesByParent[c.id] || [];
@@ -300,7 +317,6 @@ async function loadComments() {
             }
         });
 
-        // Bind delete
         list.querySelectorAll('.comment-delete').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -315,7 +331,6 @@ async function loadComments() {
             });
         });
 
-        // Bind reply
         list.querySelectorAll('.comment-reply-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const parentId = btn.dataset.id;
@@ -332,7 +347,7 @@ function openReplyForm(parentId) {
     const slot = document.querySelector(`.reply-form-slot[data-parent="${parentId}"]`);
     if (!slot) return;
     if (slot.querySelector('textarea')) {
-        slot.innerHTML = ''; // toggle off
+        slot.innerHTML = '';
         return;
     }
     slot.innerHTML = `
