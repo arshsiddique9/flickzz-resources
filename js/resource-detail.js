@@ -81,8 +81,14 @@ function renderDetail(r) {
                 </p>
             </div>
         </div>
-        <div class="detail-description">${escapeHtml(r.description || '').replace(/\n/g, '<br>')}</div>
+        <div class="detail-description markdown-body" id="resourceDescription"></div>
     `;
+
+    // ✅ Render Markdown description
+    const descEl = document.getElementById('resourceDescription');
+    if (descEl && r.description) {
+        descEl.innerHTML = marked.parse(r.description);
+    }
 
     document.getElementById('downloadBtn').addEventListener('click', handleDownload);
 }
