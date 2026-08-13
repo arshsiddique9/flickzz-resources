@@ -81,13 +81,14 @@
                     <i class="fas fa-sliders"></i> <span>Site Settings</span>
                 </button>
 
-                <!-- ✅ Installation Tab REMOVED -->
-
                 <div class="admin-nav-divider"></div>
-
                 <a class="admin-nav-item" href="index.html">
                     <i class="fas fa-home"></i> <span>View Site</span>
                 </a>
+                <button class="admin-nav-item" id="adminLogoutBtn">
+                    <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
+                </button>
+            </nav>
 
             <div class="admin-sidebar-footer">
                 <div class="admin-user-info">
@@ -116,47 +117,15 @@
                     <h1><i class="fas fa-gauge-high"></i> Dashboard</h1>
                     <p>Welcome back, <strong id="dashGreetName">Owner</strong>. Here's what's happening on FlickZZ today.</p>
                 </div>
-
                 <div class="dashboard-stats">
-                    <div class="dash-stat-card">
-                        <div class="dash-stat-icon bg-primary"><i class="fas fa-box"></i></div>
-                        <div>
-                            <div class="dash-stat-num" id="totalResources">0</div>
-                            <div class="dash-stat-label">Total Resources</div>
-                        </div>
-                    </div>
-                    <div class="dash-stat-card">
-                        <div class="dash-stat-icon bg-success"><i class="fas fa-users"></i></div>
-                        <div>
-                            <div class="dash-stat-num" id="totalUsers">0</div>
-                            <div class="dash-stat-label">Total Users</div>
-                        </div>
-                    </div>
-                    <div class="dash-stat-card">
-                        <div class="dash-stat-icon bg-warn"><i class="fas fa-download"></i></div>
-                        <div>
-                            <div class="dash-stat-num" id="totalDownloads">0</div>
-                            <div class="dash-stat-label">Total Downloads</div>
-                        </div>
-                    </div>
-                    <div class="dash-stat-card">
-                        <div class="dash-stat-icon bg-danger"><i class="fas fa-star-half-stroke"></i></div>
-                        <div>
-                            <div class="dash-stat-num" id="totalFeedback">0</div>
-                            <div class="dash-stat-label">Feedback</div>
-                        </div>
-                    </div>
+                    <div class="dash-stat-card"><div class="dash-stat-icon bg-primary"><i class="fas fa-box"></i></div><div><div class="dash-stat-num" id="totalResources">0</div><div class="dash-stat-label">Total Resources</div></div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-icon bg-success"><i class="fas fa-users"></i></div><div><div class="dash-stat-num" id="totalUsers">0</div><div class="dash-stat-label">Total Users</div></div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-icon bg-warn"><i class="fas fa-download"></i></div><div><div class="dash-stat-num" id="totalDownloads">0</div><div class="dash-stat-label">Total Downloads</div></div></div>
+                    <div class="dash-stat-card"><div class="dash-stat-icon bg-danger"><i class="fas fa-star-half-stroke"></i></div><div><div class="dash-stat-num" id="totalFeedback">0</div><div class="dash-stat-label">Feedback</div></div></div>
                 </div>
-
                 <div class="dashboard-grid">
-                    <div class="admin-card">
-                        <h3><i class="fas fa-chart-bar"></i> Top Resources</h3>
-                        <div id="topResourcesList" class="top-list"></div>
-                    </div>
-                    <div class="admin-card">
-                        <h3><i class="fas fa-user-plus"></i> Recent Users</h3>
-                        <div id="recentUsersList" class="top-list"></div>
-                    </div>
+                    <div class="admin-card"><h3><i class="fas fa-chart-bar"></i> Top Resources</h3><div id="topResourcesList" class="top-list"></div></div>
+                    <div class="admin-card"><h3><i class="fas fa-user-plus"></i> Recent Users</h3><div id="recentUsersList" class="top-list"></div></div>
                 </div>
             </div>
 
@@ -190,10 +159,36 @@
                             <label>Short Tagline</label>
                             <input type="text" id="tagline" placeholder="One-line summary" maxlength="120">
                         </div>
+
+                        <!-- ✅ NEW: Markdown Description with Toolbar -->
                         <div class="form-group">
-                            <label>Description *</label>
-                            <textarea id="description" rows="5" required placeholder="Detailed description..."></textarea>
+                            <label>Description * <span style="font-weight:400;font-size:0.75rem;color:var(--text-muted);">(Markdown supported)</span></label>
+                            
+                            <!-- Toolbar -->
+                            <div style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-bottom:0.5rem; background:var(--bg-elevated); padding:0.5rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('**', '**')" title="Bold"><b>B</b></button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('*', '*')" title="Italic"><i>I</i></button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('# ', '')" title="Heading 1">H1</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('## ', '')" title="Heading 2">H2</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('### ', '')" title="Heading 3">H3</button>
+                                <span style="width:1px;background:var(--border);margin:0 0.2rem;"></span>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('- ', '')" title="Bullet List">• List</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('1. ', '')" title="Numbered List">1. List</button>
+                                <span style="width:1px;background:var(--border);margin:0 0.2rem;"></span>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('[', '](url)')" title="Link">🔗 Link</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('![alt](', ')')" title="Image">🖼️ Image</button>
+                                <span style="width:1px;background:var(--border);margin:0 0.2rem;"></span>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('```\n', '\n```')" title="Code Block">{ } Code</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('> ', '')" title="Quote">“ Quote</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('| Col1 | Col2 |\n|------|------|\n| Val1 | Val2 |\n', '')" title="Table">⬜ Table</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="insertMarkdown('---\n', '')" title="Horizontal Rule">— HR</button>
+                            </div>
+                            
+                            <textarea id="description" rows="8" required placeholder="Write a detailed description of your resource...&#10;&#10;Supports Markdown: **bold**, *italic*, headings, lists, links, images, code blocks, tables, quotes." style="font-family:monospace;font-size:0.95rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:0.8rem 1rem;width:100%;resize:vertical;"></textarea>
+                            
+                            <small class="hint">Markdown supported: **bold**, *italic*, headings (#, ##, ###), lists, links, images, code blocks (```), tables, quotes.</small>
                         </div>
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Version</label>
@@ -260,14 +255,7 @@
                     <div class="admin-table-wrap">
                         <table class="admin-table">
                             <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Downloads</th>
-                                    <th>Featured</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
+                                <tr><th>Title</th><th>Category</th><th>Downloads</th><th>Featured</th><th>Created</th><th>Actions</th></tr>
                             </thead>
                             <tbody id="adminResourcesTable"></tbody>
                         </table>
@@ -290,16 +278,7 @@
                     </div>
                     <div class="admin-table-wrap">
                         <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Joined</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
                             <tbody id="usersTable"></tbody>
                         </table>
                     </div>
@@ -321,15 +300,7 @@
                     </div>
                     <div class="admin-table-wrap">
                         <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Comment</th>
-                                    <th>Resource</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>User</th><th>Comment</th><th>Resource</th><th>Date</th><th>Actions</th></tr></thead>
                             <tbody id="commentsTable"></tbody>
                         </table>
                     </div>
@@ -345,16 +316,7 @@
                 <div class="admin-card">
                     <div class="admin-table-wrap">
                         <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Rating</th>
-                                    <th>Feedback</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>User</th><th>Rating</th><th>Feedback</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
                             <tbody id="adminFeedbackTable"></tbody>
                         </table>
                     </div>
@@ -370,13 +332,7 @@
                 <div class="admin-card">
                     <div class="admin-table-wrap">
                         <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Resource</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>User</th><th>Resource</th><th>Date</th></tr></thead>
                             <tbody id="downloadsTable"></tbody>
                         </table>
                     </div>
@@ -392,81 +348,31 @@
                 <div class="admin-card">
                     <form id="settingsForm" class="admin-form">
                         <h3><i class="fab fa-discord" style="color:#5865F2;"></i> Discord</h3>
-                        <div class="form-group">
-                            <label>Discord Invite URL</label>
-                            <input type="url" id="setDiscord" placeholder="https://discord.gg/...">
-                        </div>
-
+                        <div class="form-group"><label>Discord Invite URL</label><input type="url" id="setDiscord" placeholder="https://discord.gg/..."></div>
                         <h3 style="margin-top:2rem;"><i class="fab fa-youtube" style="color:#FF0000;"></i> YouTube</h3>
-                        <div class="form-group">
-                            <label>YouTube Channel URL</label>
-                            <input type="url" id="setYoutube" placeholder="https://youtube.com/@...">
-                        </div>
-
+                        <div class="form-group"><label>YouTube Channel URL</label><input type="url" id="setYoutube" placeholder="https://youtube.com/@..."></div>
                         <h3 style="margin-top:2rem;"><i class="fas fa-bullhorn"></i> Site Announcement</h3>
-                        <div class="form-group">
-                            <label>Announcement Banner (leave blank to hide)</label>
-                            <input type="text" id="setAnnouncement" placeholder="🎉 New plugins added! Check them out." maxlength="200">
-                        </div>
-
+                        <div class="form-group"><label>Announcement Banner (leave blank to hide)</label><input type="text" id="setAnnouncement" placeholder="🎉 New plugins added!" maxlength="200"></div>
                         <h3 style="margin-top:2rem;"><i class="fas fa-pen-fancy"></i> Hero Section</h3>
-                        <div class="form-group">
-                            <label>Hero Headline</label>
-                            <input type="text" id="setHeroTitle" placeholder="Level Up Your Minecraft Server Experience" maxlength="120">
-                        </div>
-                        <div class="form-group">
-                            <label>Hero Subtitle</label>
-                            <textarea id="setHeroSubtitle" rows="2" maxlength="300" placeholder="Download free, curated plugins, mods, modpacks, configs, and tools."></textarea>
-                        </div>
-
+                        <div class="form-group"><label>Hero Headline</label><input type="text" id="setHeroTitle" placeholder="Level Up Your Minecraft Server Experience" maxlength="120"></div>
+                        <div class="form-group"><label>Hero Subtitle</label><textarea id="setHeroSubtitle" rows="2" maxlength="300" placeholder="Download free, curated plugins..."></textarea></div>
                         <h3 style="margin-top:2rem;"><i class="fas fa-toggle-on"></i> Features</h3>
-                        <div class="form-group">
-                            <label class="checkbox">
-                                <input type="checkbox" id="setFeedbackEnabled" checked>
-                                <span>Show feedback section on home page</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox">
-                                <input type="checkbox" id="setRegistrationOpen" checked>
-                                <span>Allow new user registrations</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox">
-                                <input type="checkbox" id="setMaintenance">
-                                <span>🚧 Maintenance Mode (only owner can access site)</span>
-                            </label>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Settings
-                            </button>
-                        </div>
+                        <div class="form-group"><label class="checkbox"><input type="checkbox" id="setFeedbackEnabled" checked> Show feedback section</label></div>
+                        <div class="form-group"><label class="checkbox"><input type="checkbox" id="setRegistrationOpen" checked> Allow new user registrations</label></div>
+                        <div class="form-group"><label class="checkbox"><input type="checkbox" id="setMaintenance"> 🚧 Maintenance Mode</label></div>
+                        <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button></div>
                     </form>
                 </div>
-
                 <!-- Owner Info Card -->
-                <div class="admin-card" style="margin-top: 1.5rem;">
+                <div class="admin-card" style="margin-top:1.5rem;">
                     <h3><i class="fas fa-fingerprint"></i> Your Owner Identity</h3>
-                    <p style="color:var(--text-muted); margin-bottom: 1rem;">
-                        Paste your UID below into <code>js/firebase-config.js</code> → <code>OWNER_UID</code> for maximum security.
-                    </p>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Paste your UID below into <code>js/firebase-config.js</code> → <code>OWNER_UID</code> for maximum security.</p>
                     <div class="owner-info-row">
-                        <div>
-                            <label>Owner Email</label>
-                            <div class="info-value" id="ownerEmailDisplay">—</div>
-                        </div>
-                        <div>
-                            <label>Owner UID <button class="copy-btn" id="copyUidBtn" title="Copy"><i class="fas fa-copy"></i></button></label>
-                            <div class="info-value mono" id="ownerUidDisplay">—</div>
-                        </div>
+                        <div><label>Owner Email</label><div class="info-value" id="ownerEmailDisplay">—</div></div>
+                        <div><label>Owner UID <button class="copy-btn" id="copyUidBtn"><i class="fas fa-copy"></i></button></label><div class="info-value mono" id="ownerUidDisplay">—</div></div>
                     </div>
                 </div>
             </div>
-
-            <!-- ============ INSTALLATIONS TAB REMOVED ============ -->
 
         </main>
     </div>
@@ -480,5 +386,24 @@
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/admin.js"></script>
     <script src="js/protection.js"></script>
+
+    <!-- Markdown Editor Script -->
+    <script>
+        window.insertMarkdown = function(prefix, suffix) {
+            const ta = document.getElementById('description');
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const text = ta.value;
+            const before = text.substring(0, start);
+            const selected = text.substring(start, end);
+            const after = text.substring(end);
+            const newText = before + prefix + selected + suffix + after;
+            ta.value = newText;
+            ta.focus();
+            const newCursorPos = start + prefix.length + selected.length + suffix.length;
+            ta.setSelectionRange(newCursorPos, newCursorPos);
+            ta.dispatchEvent(new Event('input'));
+        };
+    </script>
 </body>
 </html>
