@@ -339,7 +339,7 @@ export async function getLiveStats() {
 
     const result = { resources: 0, downloads: 0, members: 0 };
 
-    // 1) Resources + downloads (PUBLIC — works for guests)
+    // 1) Resources + downloads (public)
     try {
         const resSnap = await getDocs(collection(db, 'resources'));
         result.resources = resSnap.size;
@@ -349,25 +349,28 @@ export async function getLiveStats() {
         });
         result.downloads = totalDownloads;
     } catch (err) {
-        console.warn('[getLiveStats] resources fetch failed:', err?.message);
+        console.warn('resources fetch failed:', err?.message);
     }
 
-    // 2) Members count from /users (PRIVATE for guests).
-    //    First try direct read — works for signed-in users.
-    //    If that fails (guest), fall back to a public /publicStats/members counter
-    //    that we maintain on signup. If that also fails, leave 0 — never break the page.
+    // 2) Members count – try /users first, fallback to publicStats
     try {
         const usrSnap = await getDocs(collection(db, 'users'));
         result.members = usrSnap.size;
+        // ✅ Update publicStats in background for future guests
+        try {
+            await setDoc(
+                doc(db, 'publicStats', 'members'),
+                { count: usrSnap.size, updatedAt: serverTimestamp() },
+                { merge: true }
+            );
+        } catch (_) {}
     } catch {
         try {
             const memDoc = await getDoc(doc(db, 'publicStats', 'members'));
             if (memDoc.exists()) {
                 result.members = memDoc.data().count || 0;
             }
-        } catch {
-            // Stay 0 silently — don't pollute the console for guests.
-        }
+        } catch (_) {}
     }
 
     return result;
