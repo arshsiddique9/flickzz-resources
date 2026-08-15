@@ -1,95 +1,76 @@
 // ============================================
-// FlickZZ Resources - Users API (Admin Only)
+// FlickZZ Resources - Users API
 // ============================================
 
-import {
-    collection, doc, getDocs, getDoc, updateDoc, deleteDoc,
-    query, orderBy, limit, where, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db, firebaseReady } from "./firebase-config.js";
 
-// List users (most recent first)
-export async function listUsers({ max = 200 } = {}) {
+export async function listUsers({ max = 500 } = {}) {
     if (!firebaseReady || !db) return [];
     try {
         const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(max));
         const snap = await getDocs(q);
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch (err) {
-        // Fallback if no createdAt
-        try {
-            const snap = await getDocs(collection(db, 'users'));
-            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        } catch {
-            return [];
-        }
-    }
+    } catch (err) { console.error('listUsers error:', err); return []; }
 }
 
-// Ban / Unban a user (sets a flag — Firestore rules can be extended to enforce)
-export async function setUserBanned(uid, banned) {
-    if (!firebaseReady || !db) throw new Error('Firebase not configured.');
-    await updateDoc(doc(db, 'users', uid), {
-        banned: !!banned,
-        bannedAt: banned ? serverTimestamp() : null
-    });
+export async function getRecentUsers(count = 5) {
+    return listUsers({ max: count });
 }
 
-// Promote / demote admin flag (stored only — Firestore admin enforcement
-// is still tied to email allowlist in firebase-config.js. This flag is mainly
-// for UI display.)
-export async function setUserAdmin(uid, isAdmin) {
-    if (!firebaseReady || !db) throw new Error('Firebase not configured.');
-    await updateDoc(doc(db, 'users', uid), { isAdmin: !!isAdmin });
+export async function setUserBanned(userId, banned) {
+    if (!firebaseReady || !db) throw new Error('Firebase not configured');
+    await updateDoc(doc(db, 'users', userId), { banned });
 }
 
-// Delete a user record (does NOT remove the Firebase Auth account —
-// that must be done from the Firebase Console under Authentication → Users)
-export async function deleteUserRecord(uid) {
-    if (!firebaseReady || !db) throw new Error('Firebase not configured.');
-    await deleteDoc(doc(db, 'users', uid));
+export async function setUserAdmin(userId, isAdmin) {
+    if (!firebaseReady || !db) throw new Error('Firebase not configured');
+    await updateDoc(doc(db, 'users', userId), { isAdmin });
 }
 
-// Get recent users (small list for dashboard)
-export async function getRecentUsers(n = 5) {
-    const all = await listUsers({ max: n });
-    return all.slice(0, n);
+// ✅ NEW: Publisher role
+export async function setUserPublisher(userId, isPublisher) {
+    if (!firebaseReady || !db) throw new Error('Firebase not configured');
+    await updateDoc(doc(db, 'users', userId), { isPublisher });
 }
 
-// ============ COMMENTS (all-resource flat list) ============
-// We use Firestore's collectionGroup to query across all resource sub-collections
-import { collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+export async function deleteUserRecord(userId) {
+    if (!firebaseReady || !db) throw new Error('Firebase not configured');
+    await deleteDoc(doc(db, 'users', userId));
+}
 
-export async function listAllComments({ max = 200 } = {}) {
+export async function listAllComments() {
     if (!firebaseReady || !db) return [];
     try {
-        const q = query(collectionGroup(db, 'comments'), orderBy('createdAt', 'desc'), limit(max));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => {
-            // The parent path is `resources/{resourceId}/comments/{commentId}`
-            const segs = d.ref.path.split('/');
-            const resourceId = segs[1];
-            return { id: d.id, resourceId, ...d.data() };
-        });
-    } catch (err) {
-        console.warn('listAllComments error:', err);
-        return [];
-    }
+        const snap = await getDocs(collection(db, 'resources'));
+        let comments = [];
+        for (const resourceDoc of snap.docs) {
+            const commentsSnap = await getDocs(collection(db, 'resources', resourceDoc.id, 'comments'));
+            commentsSnap.docs.forEach(c => comments.push({ id: c.id, resourceId: resourceDoc.id, resourceTitle: resourceDoc.data().title, ...c.data() }));
+        }
+        return comments.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    } catch (err) { console.error(err); return []; }
 }
 
 export async function deleteAnyComment(resourceId, commentId) {
-    if (!firebaseReady || !db) throw new Error('Firebase not configured.');
+    if (!firebaseReady || !db) throw new Error('Firebase not configured');
     await deleteDoc(doc(db, 'resources', resourceId, 'comments', commentId));
 }
 
-// ============ DOWNLOADS LIST (admin analytics) ============
-export async function listAllDownloads({ max = 100 } = {}) {
+export async function listAllDownloads() {
     if (!firebaseReady || !db) return [];
     try {
-        const q = query(collection(db, 'downloads'), orderBy('downloadedAt', 'desc'), limit(max));
+        const q = query(collection(db, 'downloads'), orderBy('downloadedAt', 'desc'), limit(100));
         const snap = await getDocs(q);
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch (err) {
-        return [];
-    }
+    } catch (err) { console.error(err); return []; }
+}
+
+// Check if current user is publisher
+export async function isUserPublisher(userId) {
+    if (!firebaseReady || !db || !userId) return false;
+    try {
+        const snap = await getDoc(doc(db, 'users', userId));
+        return snap.exists() ? !!snap.data().isPublisher : false;
+    } catch { return false; }
 }
