@@ -35,7 +35,7 @@
                 your email
             </p>
 
-            <!-- ✅ OTP Input Section -->
+            <!-- OTP Input Section -->
             <div style="margin-bottom:1.5rem;">
                 <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
                     <input type="text" id="otp1" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
@@ -75,7 +75,6 @@
 
         document.getElementById('userEmailDisplay').textContent = email || 'your email';
 
-        // Auto-focus & move to next input
         const inputs = [1,2,3,4,5,6].map(i => document.getElementById(`otp${i}`));
         
         inputs.forEach((input, index) => {
@@ -84,7 +83,6 @@
                 if (this.value.length === 1 && index < 5) {
                     inputs[index + 1].focus();
                 }
-                // Auto-submit when all 6 digits filled
                 if (inputs.every(inp => inp.value.length === 1)) {
                     verifyOTP();
                 }
@@ -119,31 +117,28 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Verification failed');
 
-                showToast('✅ Email verified! Logging you in...', 'success');
+                showToast('✅ Email verified! Redirecting...', 'success');
                 
-                // ✅ Auto login after verification
-                // The user is already signed up but was signed out after signup
-                // We need to sign them in
-                if (email) {
-                    const password = prompt('Please enter your password to log in:');
-                    if (password) {
-                        try {
-                            await signInWithEmailAndPassword(auth, email, password);
-                            showToast('🎉 Welcome! Redirecting...', 'success');
-                            setTimeout(() => {
-                                window.location.href = 'dashboard.html';
-                            }, 1000);
-                        } catch (loginErr) {
-                            showToast('Login failed. Please log in manually.', 'error');
-                            setTimeout(() => {
-                                window.location.href = 'login.html';
-                            }, 1500);
+                // ✅ Try to auto-login if user is already signed in (from signup)
+                // Otherwise redirect to login page
+                try {
+                    // Check if user is already logged in
+                    if (auth.currentUser) {
+                        // User is already logged in from signup
+                        await auth.currentUser.reload();
+                        if (auth.currentUser.emailVerified) {
+                            window.location.href = 'dashboard.html';
+                            return;
                         }
-                    } else {
-                        window.location.href = 'login.html';
                     }
-                } else {
-                    window.location.href = 'login.html';
+                    // If not logged in, redirect to login
+                    setTimeout(() => {
+                        window.location.href = `login.html?verified=1&email=${encodeURIComponent(email)}`;
+                    }, 1500);
+                } catch (loginErr) {
+                    setTimeout(() => {
+                        window.location.href = `login.html?verified=1&email=${encodeURIComponent(email)}`;
+                    }, 1500);
                 }
             } catch (err) {
                 showToast(err.message, 'error');
