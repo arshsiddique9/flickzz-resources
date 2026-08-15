@@ -667,3 +667,52 @@ body.auth-page > ul.nav-links {
     .lb-medal { width: 40px; height: 40px; font-size: 1rem; }
     .lb-count-num { font-size: 1.25rem; }
 }
+
+/* ============ AUTO-RESIZE TEXTAREA ============ */
+.auto-resize {
+    min-height: 120px;
+    max-height: 400px;
+    resize: none;
+    overflow-y: hidden;
+    transition: height 0.2s ease;
+}
+
+/* ============ SMART SAVE BUTTON GLOW ============ */
+.btn-glow {
+    animation: btnGlow 1.5s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 40px rgba(99, 102, 241, 0.3);
+}
+@keyframes btnGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 40px rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8), 0 0 60px rgba(99, 102, 241, 0.5); }
+}
+
+/* ============ PUBLISHER BADGE ============ */
+.status-publisher {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+}
+
+/* ============ MARKDOWN TOOLBAR ICONS ============ */
+.md-toolbar button {
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============ TOAST ICONS ============ */
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.toast-icon svg {
+    width: 100%;
+    height: 100%;
+}
+.toast.success .toast-icon { color: #22c55e; }
+.toast.error .toast-icon { color: #ef4444; }
+.toast.warning .toast-icon { color: #f59e0b; }
+.toast.info .toast-icon { color: #3b82f6; }
