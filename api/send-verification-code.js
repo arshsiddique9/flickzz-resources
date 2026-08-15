@@ -1,4 +1,4 @@
-// api/send-verification-code.js (Brevo API)
+// api/send-verification-code.js (Brevo API – Fixed)
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (req.method !== 'POST') {
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     }
 
     const BREVO_API_KEY = process.env.BREVO_API_KEY;
-    const fromEmail = process.env.BREVO_EMAIL_FROM || 'officialflickzzyt@gmail.com';
+    const fromEmail = process.env.BREVO_EMAIL_FROM || 'noreply@flickzz.qzz.io';
 
     if (!BREVO_API_KEY) {
         console.error('❌ BREVO_API_KEY missing');
@@ -48,10 +48,21 @@ export default async function handler(req, res) {
             })
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            const errData = await response.json();
-            console.error('❌ Brevo error:', errData);
-            return res.status(500).json({ error: errData.message || 'Failed to send email' });
+            console.error('❌ Brevo error:', response.status, data);
+            // Check if it's a permission/authentication error
+            if (response.status === 401 || response.status === 403) {
+                return res.status(403).json({ 
+                    error: 'Email service authentication failed. Please check API key and sender email.',
+                    details: data.message || 'Permission denied'
+                });
+            }
+            return res.status(response.status).json({ 
+                error: data.message || 'Failed to send email',
+                details: data
+            });
         }
 
         console.log(`✅ Verification email sent to ${email}`);
