@@ -1,14 +1,14 @@
-// signup.js (Brevo API – 6-digit OTP)
+// signup.js (Keep user logged in after signup)
 import { signUpEmail, signInGoogle } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 import { auth, db } from "./firebase-config.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ✅ Remove: import { signOut } from "firebase-auth";
 
 const form = document.getElementById('signupForm');
 const submitBtn = document.getElementById('signupSubmit');
 
-// ✅ Brevo API ke through OTP send karega
 async function sendVerificationCode(email, code) {
     const res = await fetch('/api/send-verification-code', {
         method: 'POST',
@@ -24,7 +24,7 @@ async function sendVerificationCode(email, code) {
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // CAPTCHA check (Turnstile)
+    // CAPTCHA check
     const token = document.getElementById('cfToken').value;
     if (!token) {
         showToast('Complete security check', 'warning');
@@ -68,8 +68,8 @@ form.addEventListener('submit', async (e) => {
         });
 
         await sendVerificationCode(email, otp);
-        await signOut(auth);
 
+        // ✅ KEEP USER LOGGED IN – DO NOT signOut
         showToast('OTP sent! Check your email.', 'success');
         setTimeout(() => {
             window.location.href = `verify-email.html?uid=${user.uid}&email=${encodeURIComponent(email)}`;
@@ -84,7 +84,7 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// Google signup (same as before)
+// Google signup
 document.getElementById('googleSignupBtn').addEventListener('click', async () => {
     try {
         const user = await signInGoogle();
