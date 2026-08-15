@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify your email — FlickZZ Resources</title>
+    <title>Verify your email — FlickZZ</title>
     <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/features.css">
 </head>
 <body class="auth-page">
     <div class="auth-bg">
@@ -24,32 +23,37 @@
         </a>
 
         <div class="auth-card" style="text-align:center;">
-            <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 10px 30px rgba(99,102,241,0.4);">
-                <i class="fas fa-envelope-open-text" style="font-size:2.5rem;color:white;"></i>
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 10px 30px rgba(99,102,241,0.4);">
+                <i class="fas fa-envelope-open-text" style="font-size:2rem;color:white;"></i>
             </div>
 
-            <h1 style="font-size:1.75rem;margin-bottom:0.75rem;">Check your email</h1>
-            <p style="color:var(--text-muted);margin-bottom:0.5rem;">
-                We've sent a verification link to:
+            <h1 style="font-size:1.5rem;margin-bottom:0.5rem;">Verify Your Email</h1>
+            <p style="color:var(--text-muted);margin-bottom:0.25rem;">
+                Enter the 6-digit code sent to:
             </p>
             <p id="userEmailDisplay" style="font-weight:700;color:var(--primary);margin-bottom:1.5rem;word-break:break-all;">
                 your email
             </p>
 
-            <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:1rem;margin-bottom:1.5rem;text-align:left;">
-                <p style="font-size:0.9rem;color:var(--text-muted);margin:0;line-height:1.6;">
-                    <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-                    Click the link inside the email to verify your account.
-                    Then come back and log in.<br><br>
-                    <strong style="color:var(--text);">Can't find it?</strong> Check your <strong>Spam</strong> or <strong>Promotions</strong> folder.
-                </p>
+            <!-- ✅ OTP Input Section -->
+            <div style="margin-bottom:1.5rem;">
+                <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                    <input type="text" id="otp1" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                    <input type="text" id="otp2" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                    <input type="text" id="otp3" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                    <input type="text" id="otp4" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                    <input type="text" id="otp5" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                    <input type="text" id="otp6" maxlength="1" style="width:50px;height:60px;text-align:center;font-size:1.8rem;font-weight:700;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);">
+                </div>
+                <small style="color:var(--text-dim);display:block;margin-top:0.5rem;">Enter the 6-digit code from your email</small>
             </div>
 
-            <a href="login.html" class="btn btn-primary btn-block" style="margin-bottom:0.75rem;">
-                <i class="fas fa-sign-in-alt"></i> I've verified — Log In
-            </a>
+            <button id="verifyBtn" class="btn btn-primary btn-block" style="margin-bottom:0.75rem;">
+                <i class="fas fa-check-circle"></i> Verify & Log In
+            </button>
+
             <button id="resendBtn" class="btn btn-outline btn-block">
-                <i class="fas fa-paper-plane"></i> Resend verification email
+                <i class="fas fa-paper-plane"></i> Resend Code
             </button>
 
             <p style="margin-top:1.5rem;font-size:0.85rem;color:var(--text-muted);">
@@ -62,31 +66,117 @@
 
     <script type="module">
         import { auth } from "./js/firebase-config.js";
-        import { signInWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { showToast } from "./js/main.js";
 
-        const email = sessionStorage.getItem('pendingVerifyEmail') || '';
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+        const email = urlParams.get('email') || sessionStorage.getItem('pendingVerifyEmail') || '';
+
         document.getElementById('userEmailDisplay').textContent = email || 'your email';
 
+        // Auto-focus & move to next input
+        const inputs = [1,2,3,4,5,6].map(i => document.getElementById(`otp${i}`));
+        
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 1 && index < 5) {
+                    inputs[index + 1].focus();
+                }
+                // Auto-submit when all 6 digits filled
+                if (inputs.every(inp => inp.value.length === 1)) {
+                    verifyOTP();
+                }
+            });
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                    inputs[index - 1].focus();
+                }
+                if (e.key === 'Enter') {
+                    verifyOTP();
+                }
+            });
+        });
+
+        async function verifyOTP() {
+            const otp = inputs.map(inp => inp.value).join('');
+            if (otp.length !== 6) {
+                showToast('Please enter the full 6-digit code', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('verifyBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+            try {
+                const res = await fetch('/api/verify-email-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid, code: otp })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+                showToast('✅ Email verified! Logging you in...', 'success');
+                
+                // ✅ Auto login after verification
+                // The user is already signed up but was signed out after signup
+                // We need to sign them in
+                if (email) {
+                    const password = prompt('Please enter your password to log in:');
+                    if (password) {
+                        try {
+                            await signInWithEmailAndPassword(auth, email, password);
+                            showToast('🎉 Welcome! Redirecting...', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 1000);
+                        } catch (loginErr) {
+                            showToast('Login failed. Please log in manually.', 'error');
+                            setTimeout(() => {
+                                window.location.href = 'login.html';
+                            }, 1500);
+                        }
+                    } else {
+                        window.location.href = 'login.html';
+                    }
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify & Log In';
+                inputs.forEach(inp => inp.value = '');
+                inputs[0].focus();
+            }
+        }
+
+        document.getElementById('verifyBtn').addEventListener('click', verifyOTP);
+
+        // Resend code
         document.getElementById('resendBtn').addEventListener('click', async () => {
             const btn = document.getElementById('resendBtn');
-            const password = prompt('For security, please re-enter your password to resend:');
-            if (!password) return;
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Sending...';
             try {
-                const cred = await signInWithEmailAndPassword(auth, email, password);
-                await sendEmailVerification(cred.user, {
-                    url: window.location.origin + '/login.html?verified=1',
-                    handleCodeInApp: false
+                const res = await fetch('/api/resend-verification-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid, email })
                 });
-                await signOut(auth);
-                showToast('✅ Verification email resent!', 'success');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to resend');
+                showToast('✅ New code sent! Check your email.', 'success');
+                inputs.forEach(inp => inp.value = '');
+                inputs[0].focus();
             } catch (err) {
-                showToast(err.message || 'Could not resend', 'error');
+                showToast(err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Resend verification email';
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Resend Code';
             }
         });
     </script>
