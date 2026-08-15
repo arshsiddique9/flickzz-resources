@@ -8,9 +8,12 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email in [
-        'officialflickzzyt@gmail.com'
-      ];
+      return isSignedIn() && request.auth.token.email in ['officialflickzzyt@gmail.com'];
+    }
+
+    function isPublisher() {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isPublisher == true;
     }
 
     match /users/{userId} {
@@ -24,7 +27,8 @@ service cloud.firestore {
     match /resources/{resourceId} {
       allow read: if true;
       allow list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin() || isPublisher();
+      allow update, delete: if isAdmin() || (isPublisher() && resource.data.uploadedBy == request.auth.uid);
 
       match /ratings/{userId} {
         allow read: if true;
@@ -39,11 +43,8 @@ service cloud.firestore {
 
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if isSignedIn()
-          && request.resource.data.userId == request.auth.uid;
-        allow delete: if isSignedIn() && (
-          resource.data.userId == request.auth.uid || isAdmin()
-        );
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
         allow update: if isAdmin();
       }
     }
@@ -63,8 +64,7 @@ service cloud.firestore {
 
     match /feedback/{feedbackId} {
       allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
