@@ -45,7 +45,7 @@ export default async function handler(req, res) {
         await authAdmin.updateUser(data.userId, { password: newPassword });
         await docRef.delete();
 
-        console.log(`✅ Password reset for user: ${data.userId}`);
+        console.log(` Password reset for user: ${data.userId}`);
         res.status(200).json({ success: true, message: 'Password reset successfully' });
     } catch (err) {
         console.error('❌ Error:', err);
