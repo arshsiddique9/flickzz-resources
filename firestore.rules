@@ -16,6 +16,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isPublisher == true;
     }
 
+    // ===== USERS =====
     match /users/{userId} {
       allow read: if isSignedIn();
       allow list: if isAdmin();
@@ -24,6 +25,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ===== USERNAMES (for uniqueness tracking) =====
+    match /usernames/{username} {
+      allow read: if true;  // anyone can check if username exists
+      allow create: if isSignedIn() && !exists();  // only if not exists
+      allow update: if isAdmin();  // only admin can update (for owner exception)
+      allow delete: if isAdmin();
+    }
+
+    // ===== RESOURCES =====
     match /resources/{resourceId} {
       allow read: if true;
       allow list: if true;
@@ -49,6 +59,7 @@ service cloud.firestore {
       }
     }
 
+    // ===== DOWNLOADS =====
     match /downloads/{downloadId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
@@ -57,22 +68,44 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ===== EMAIL VERIFICATIONS (OTP storage) =====
+    match /emailVerifications/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // ===== ADMIN OTP (deprecated but kept for safety) =====
+    match /adminOTP/{email} {
+      allow read, write: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ===== PASSWORD RESET TOKENS =====
+    match /passwordResetTokens/{token} {
+      allow read, write: if false;  // server-side only via Admin SDK
+      allow delete: if false;
+    }
+
+    // ===== SITE SETTINGS =====
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // ===== FEEDBACK =====
     match /feedback/{feedbackId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
+    // ===== PUBLIC STATS =====
     match /publicStats/{docId} {
       allow read: if true;
       allow write: if isSignedIn();
     }
 
+    // ===== DEFAULT DENY =====
     match /{document=**} {
       allow read, write: if false;
     }
