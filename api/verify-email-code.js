@@ -44,10 +44,10 @@ export default async function handler(req, res) {
         await authAdmin.updateUser(uid, { emailVerified: true });
         await docRef.delete();
 
-        console.log(`✅ Email verified for user: ${uid}`);
+        console.log(` Email verified for user: ${uid}`);
         res.status(200).json({ verified: true });
     } catch (err) {
-        console.error('❌ Error:', err);
+        console.error(' Error:', err);
         res.status(500).json({ error: err.message });
     }
 }
