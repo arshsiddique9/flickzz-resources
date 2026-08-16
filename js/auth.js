@@ -32,19 +32,22 @@ if (firebaseReady && auth) {
         if (user) {
             await ensureUserDoc(user);
 
-            // 🔒 CRITICAL FIX: Force email verification for non-admin users
-            // Prevents unverified users from accessing dashboard/admin bypass
-            if (!user.emailVerified && !authState.isAdmin) {
-                const currentPath = window.location.pathname;
-                const allowedPaths = ['/verify-email.html', '/login.html', '/signup.html', '/'];
-                const isAllowed = allowedPaths.some(p => currentPath === p || currentPath.startsWith('/verify-email.html'));
-                
-                if (!isAllowed) {
+            // ✅ FIX: Only redirect if NOT already on verify-email page
+            // Prevents infinite refresh loop
+            const currentPath = window.location.pathname;
+            const isOnVerifyPage = currentPath.includes('verify-email.html');
+            const isOnLoginPage = currentPath.includes('login.html');
+            const isOnSignupPage = currentPath.includes('signup.html');
+            const isOnHomePage = currentPath === '/' || currentPath === '/index.html';
+
+            // ✅ Skip redirect if already on verification page
+            if (!user.emailVerified && !authState.isAdmin && !isOnVerifyPage) {
+                // Only redirect if not already on allowed pages
+                if (!isOnLoginPage && !isOnSignupPage && !isOnHomePage) {
                     const email = encodeURIComponent(user.email || '');
                     const uid = user.uid;
-                    // Redirect unverified users to verify page
                     window.location.href = `/verify-email.html?uid=${uid}&email=${email}`;
-                    return; // Stop further execution
+                    return;
                 }
             }
         }
