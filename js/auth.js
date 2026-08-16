@@ -32,21 +32,22 @@ if (firebaseReady && auth) {
         if (user) {
             await ensureUserDoc(user);
 
-            // ✅ FIX: Only redirect if NOT already on verify-email page
-            // Prevents infinite refresh loop
+            // ✅ FIX: vercel.json has cleanUrls:true → .html stripped from URL
+            // verify-email.html becomes /verify-email (NOT /verify-email.html)
+            // Must check WITHOUT .html to prevent infinite redirect loop!
             const currentPath = window.location.pathname;
-            const isOnVerifyPage = currentPath.includes('verify-email.html');
-            const isOnLoginPage = currentPath.includes('login.html');
-            const isOnSignupPage = currentPath.includes('signup.html');
-            const isOnHomePage = currentPath === '/' || currentPath === '/index.html';
+            const isOnVerifyPage = currentPath.includes('verify-email');
+            const isOnLoginPage = currentPath.includes('login');
+            const isOnSignupPage = currentPath.includes('signup');
+            const isOnResetPage = currentPath.includes('reset-password');
+            const isOnHomePage = currentPath === '/' || currentPath === '/index' || currentPath === '/index.html';
 
-            // ✅ Skip redirect if already on verification page
+            // Skip redirect if already on an auth-related page
             if (!user.emailVerified && !authState.isAdmin && !isOnVerifyPage) {
-                // Only redirect if not already on allowed pages
-                if (!isOnLoginPage && !isOnSignupPage && !isOnHomePage) {
+                if (!isOnLoginPage && !isOnSignupPage && !isOnHomePage && !isOnResetPage) {
                     const email = encodeURIComponent(user.email || '');
                     const uid = user.uid;
-                    window.location.href = `/verify-email.html?uid=${uid}&email=${email}`;
+                    window.location.href = `/verify-email?uid=${uid}&email=${email}`;
                     return;
                 }
             }
