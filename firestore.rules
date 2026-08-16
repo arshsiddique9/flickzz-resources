@@ -28,17 +28,18 @@ service cloud.firestore {
     // ============ USERNAMES (for uniqueness) ============
     match /usernames/{username} {
       allow read: if true;
-      allow create: if isSignedIn() && !exists();
+      allow create: if isSignedIn();
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ============ EMAIL VERIFICATIONS (OTP storage) ============
     match /emailVerifications/{userId} {
+      // Allow newly created (unverified) users to write their own OTP doc
       allow read: if isSignedIn() && request.auth.uid == userId;
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && request.auth.uid == userId;
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     // ============ RESOURCES ============
