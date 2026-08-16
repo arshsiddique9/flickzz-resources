@@ -82,7 +82,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: errData.message || 'Failed to send email' });
         }
 
-        console.log(`✅ Password reset email sent to ${email}`);
+        console.log(` Password reset email sent to ${email}`);
         res.status(200).json({ success: true });
     } catch (err) {
         console.error('❌ Error:', err);
