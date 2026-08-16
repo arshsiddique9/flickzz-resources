@@ -15,7 +15,7 @@ const SETTINGS_DOC = ['settings', 'site'];
 // Default values used when nothing has been saved yet.
 export const DEFAULT_SETTINGS = {
     discordUrl: 'https://discord.gg/svsTCuHNNu',
-    youtubeUrl: 'https://youtube.com/@yt-flickzz?si=ZuzfWgYYGs4YMnQf',
+    youtubeUrl: 'https://youtube.com/@ytflickzz?si=J8PrK3d-LaBngS0V',
     announcement: '',
     heroTitle: '',                 // empty = keep hardcoded default
     heroSubtitle: '',
