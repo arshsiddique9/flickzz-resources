@@ -151,9 +151,15 @@ form.addEventListener('submit', async (e) => {
         // Send OTP
         await sendVerificationCode(email, otp);
 
+        // ✅ FIX: Sign out BEFORE redirecting to verify page
+        // This prevents the auth loop where logged-in unverified user
+        // triggers auth.js redirect on the verify page
+        try { await signOut(auth); } catch (_) {}
+
         showToast('OTP sent! Check your email.', 'success');
         setTimeout(() => {
-            window.location.href = `verify-email.html?uid=${user.uid}&email=${encodeURIComponent(email)}`;
+            // Use clean URL (no .html) - matches Vercel cleanUrls setting
+            window.location.href = `/verify-email?uid=${user.uid}&email=${encodeURIComponent(email)}`;
         }, 1500);
 
     } catch (err) {
