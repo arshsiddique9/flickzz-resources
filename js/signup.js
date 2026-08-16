@@ -1,27 +1,22 @@
-// signup.js (Keep user logged in after signup + Username uniqueness with Owner Exception)
+// signup.js (Keep user logged in after signup + Username uniqueness + Error Handling)
 import { signUpEmail, signInGoogle } from "./auth.js";
 import { showToast, translateFirebaseError } from "./main.js";
 import { auth, db, OWNER_EMAIL } from "./firebase-config.js";
 import { doc, setDoc, getDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { deleteUser, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const form = document.getElementById('signupForm');
 const submitBtn = document.getElementById('signupSubmit');
 
-// ============ CHECK USERNAME UNIQUENESS (WITH OWNER EXCEPTION) ============
+// ============ CHECK USERNAME UNIQUENESS ============
 async function isUsernameTaken(username, email) {
     const usernameRef = doc(db, 'usernames', username.toLowerCase().trim());
     const snap = await getDoc(usernameRef);
-    
-    // ✅ If username exists, check if it's the owner
     if (snap.exists()) {
         const data = snap.data();
         const isOwner = email === OWNER_EMAIL && username.toLowerCase().trim() === 'flick zz'.toLowerCase().trim();
-        // If it's the owner, allow it (update existing record instead of blocking)
-        if (isOwner) {
-            return false; // Allow owner to use this username
-        }
-        return true; // Block for normal users
+        if (isOwner) return false;
+        return true;
     }
     return false;
 }
@@ -47,7 +42,7 @@ async function sendVerificationCode(email, code) {
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // 1️⃣ CAPTCHA check
+    // CAPTCHA check
     const token = document.getElementById('cfToken').value;
     if (!token) {
         showToast('Complete security check', 'warning');
@@ -67,7 +62,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // 2️⃣ Input validation
+    // Input validation
     const displayName = document.getElementById('displayName').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
@@ -86,7 +81,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // 3️⃣ Check username uniqueness (with owner exception)
+    // Check username uniqueness
     try {
         const taken = await isUsernameTaken(displayName, email);
         if (taken) {
@@ -95,58 +90,67 @@ form.addEventListener('submit', async (e) => {
         }
     } catch (err) {
         console.warn('Username check failed:', err);
-        // Continue anyway - Firestore rules will handle it
     }
 
     setLoading(submitBtn, true, 'Creating account...');
 
     try {
-        // 4️⃣ Create Firebase Auth user
+        // Create Firebase Auth user
         const user = await signUpEmail({ email, password, displayName });
         if (!user.uid) throw new Error('No UID returned');
 
-        // 5️⃣ Generate & store OTP
+        // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        await setDoc(doc(db, 'emailVerifications', user.uid), {
-            code: otp,
-            email,
-            createdAt: serverTimestamp(),
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
 
-        // 6️⃣ Store username mapping (for uniqueness) – owner ke liye update
-        const usernameDocRef = doc(db, 'usernames', displayName.toLowerCase().trim());
-        const usernameSnap = await getDoc(usernameDocRef);
-        
-        if (usernameSnap.exists() && email === OWNER_EMAIL) {
-            // Owner ke liye update existing record
-            await setDoc(usernameDocRef, {
-                uid: user.uid,
-                username: displayName,
-                updatedAt: serverTimestamp()
-            }, { merge: true });
-        } else {
-            // Normal user ke liye create new
-            await setDoc(usernameDocRef, {
-                uid: user.uid,
-                username: displayName,
-                createdAt: serverTimestamp()
+        // ✅ Firestore writes with error handling
+        try {
+            await setDoc(doc(db, 'emailVerifications', user.uid), {
+                code: otp,
+                email,
+                createdAt: serverTimestamp(),
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000)
             });
+
+            const usernameDocRef = doc(db, 'usernames', displayName.toLowerCase().trim());
+            const usernameSnap = await getDoc(usernameDocRef);
+            if (usernameSnap.exists() && email === OWNER_EMAIL) {
+                await setDoc(usernameDocRef, {
+                    uid: user.uid,
+                    username: displayName,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            } else {
+                await setDoc(usernameDocRef, {
+                    uid: user.uid,
+                    username: displayName,
+                    createdAt: serverTimestamp()
+                });
+            }
+
+            await setDoc(doc(db, 'users', user.uid), {
+                displayName,
+                email,
+                createdAt: serverTimestamp(),
+                username: displayName,
+                isAdmin: email === OWNER_EMAIL
+            }, { merge: true });
+        } catch (firestoreErr) {
+            console.error('Firestore write failed:', firestoreErr);
+            // ✅ CRITICAL: Delete user and sign out on Firestore failure
+            try {
+                await deleteUser(auth.currentUser);
+            } catch (_) {}
+            try {
+                await signOut(auth);
+            } catch (_) {}
+            showToast('Account creation failed. Please try again.', 'error');
+            setLoading(submitBtn, false, 'Create Account');
+            return;
         }
 
-        // 7️⃣ Store user profile
-        await setDoc(doc(db, 'users', user.uid), {
-            displayName,
-            email,
-            createdAt: serverTimestamp(),
-            username: displayName,
-            isAdmin: email === OWNER_EMAIL
-        }, { merge: true });
-
-        // 8️⃣ Send OTP email
+        // Send OTP
         await sendVerificationCode(email, otp);
 
-        // 9️⃣ Redirect to verification page (user stays logged in)
         showToast('OTP sent! Check your email.', 'success');
         setTimeout(() => {
             window.location.href = `verify-email.html?uid=${user.uid}&email=${encodeURIComponent(email)}`;
@@ -156,14 +160,14 @@ form.addEventListener('submit', async (e) => {
         console.error('Signup error:', err);
         showToast(translateFirebaseError(err) || err.message, 'error');
 
-        // ❌ If OTP failed, delete the partially created user
-        if (auth.currentUser && err.message.includes('OTP')) {
+        // If OTP failed, cleanup
+        if (auth.currentUser) {
             try {
                 await deleteUser(auth.currentUser);
-                console.log('Partially created user deleted due to OTP failure.');
-            } catch (deleteErr) {
-                console.warn('Could not delete user:', deleteErr);
-            }
+            } catch (_) {}
+            try {
+                await signOut(auth);
+            } catch (_) {}
         }
 
         setLoading(submitBtn, false, 'Create Account');
@@ -178,7 +182,6 @@ document.getElementById('googleSignupBtn').addEventListener('click', async () =>
         const user = await signInGoogle();
         const isAdmin = user.email === OWNER_EMAIL;
         if (isAdmin) {
-            // Owner ke liye username set karo
             await setDoc(doc(db, 'users', user.uid), {
                 displayName: 'Flick ZZ',
                 isAdmin: true,
@@ -192,7 +195,6 @@ document.getElementById('googleSignupBtn').addEventListener('click', async () =>
     }
 });
 
-// ============ HELPER ============
 function setLoading(btn, loading, text) {
     btn.disabled = loading;
     btn.innerHTML = loading ? '<span class="spinner"></span> ' + text : '<span>' + text + '</span>';
