@@ -30,6 +30,7 @@ const adminContent = document.getElementById('adminContent');
 // ============ FORM CHANGE TRACKING ============
 let editingId = null;
 let originalFormData = {};
+let originalSettingsData = {};
 
 // ============ ACCESS CONTROL ============
 (async function init() {
@@ -746,19 +747,66 @@ async function loadDownloadsTable() {
     }
 }
 
-// ============ SETTINGS (FIXED) ============
+// ============ SETTINGS ============
+
+// ✅ Null-safe helper: set value only if element exists
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+function setChk(id, v) { const el = document.getElementById(id); if (el) el.checked = v; }
+
+// Capture current settings form values for change detection
+function getSettingsData() {
+    return {
+        discord:          document.getElementById('setDiscord')?.value          || '',
+        youtube:          document.getElementById('setYoutube')?.value          || '',
+        announcement:     document.getElementById('setAnnouncement')?.value     || '',
+        heroTitle:        document.getElementById('setHeroTitle')?.value        || '',
+        heroSubtitle:     document.getElementById('setHeroSubtitle')?.value     || '',
+        feedbackEnabled:  document.getElementById('setFeedbackEnabled')?.checked  ?? true,
+        registrationOpen: document.getElementById('setRegistrationOpen')?.checked ?? true,
+        maintenance:      document.getElementById('setMaintenance')?.checked      ?? false
+    };
+}
+
+// Show glow only when there are unsaved changes
+function updateSettingsBtnGlow() {
+    const btn = document.getElementById('saveSettingsBtn');
+    if (!btn) return;
+    const changed = JSON.stringify(getSettingsData()) !== JSON.stringify(originalSettingsData);
+    btn.classList.toggle('btn-glow', changed);
+    // Also visually enable/disable the button
+    btn.style.opacity = changed ? '1' : '0.5';
+    btn.style.cursor  = changed ? 'pointer' : 'not-allowed';
+}
+
+// Attach change listeners to all settings inputs
+function trackSettingsChanges() {
+    const form = document.getElementById('settingsForm');
+    if (!form) return;
+    form.querySelectorAll('input, textarea').forEach(el => {
+        el.addEventListener('input',  updateSettingsBtnGlow);
+        el.addEventListener('change', updateSettingsBtnGlow);
+    });
+}
+
 async function loadSettings() {
     try {
         const s = await fetchSettings();
-        // ✅ FIXED: Correct element IDs
-        document.getElementById('setDiscord').value = s.discordUrl || '';
-        document.getElementById('setYoutube').value = s.youtubeUrl || '';
-        document.getElementById('setAnnouncement').value = s.announcement || '';
-        document.getElementById('setHeroTitle').value = s.heroTitle || '';
-        document.getElementById('setHeroSubtitle').value = s.heroSubtitle || '';
-        document.getElementById('setFeedbackEnabled').checked = s.feedbackEnabled !== false;
-        document.getElementById('setRegistrationOpen').checked = s.registrationOpen !== false;
-        document.getElementById('setMaintenance').checked = !!s.maintenance;
+
+        // ✅ Null-safe: won't crash if tab hasn't rendered yet
+        setVal('setDiscord',      s.discordUrl    || '');
+        setVal('setYoutube',      s.youtubeUrl    || '');
+        setVal('setAnnouncement', s.announcement  || '');
+        setVal('setHeroTitle',    s.heroTitle     || '');
+        setVal('setHeroSubtitle', s.heroSubtitle  || '');
+        setChk('setFeedbackEnabled',  s.feedbackEnabled  !== false);
+        setChk('setRegistrationOpen', s.registrationOpen !== false);
+        setChk('setMaintenance',      !!s.maintenance);
+
+        // ✅ Capture baseline AFTER loading — glow only on actual changes
+        originalSettingsData = getSettingsData();
+        updateSettingsBtnGlow();
+        trackSettingsChanges();
+
     } catch (err) {
         console.warn('loadSettings error:', err);
     }
@@ -769,24 +817,37 @@ function bindSettingsForm() {
     if (!form) return;
     form.removeEventListener('submit', saveSettingsHandler);
     form.addEventListener('submit', saveSettingsHandler);
+
     async function saveSettingsHandler(e) {
         e.preventDefault();
-        const submitBtn = form.querySelector('button[type=submit]');
+
+        // ✅ Use ID instead of querySelector so we can always find it
+        const submitBtn = document.getElementById('saveSettingsBtn');
+        if (!submitBtn) return;
+
         submitBtn.disabled = true;
         const orig = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
         try {
+            // ✅ Null-safe: optional chaining prevents crash if element missing
             await saveSettings({
-                discordUrl: document.getElementById('setDiscord').value.trim(),
-                youtubeUrl: document.getElementById('setYoutube').value.trim(),
-                announcement: document.getElementById('setAnnouncement').value.trim(),
-                heroTitle: document.getElementById('setHeroTitle').value.trim(),
-                heroSubtitle: document.getElementById('setHeroSubtitle').value.trim(),
-                feedbackEnabled: document.getElementById('setFeedbackEnabled').checked,
-                registrationOpen: document.getElementById('setRegistrationOpen').checked,
-                maintenance: document.getElementById('setMaintenance').checked
+                discordUrl:       document.getElementById('setDiscord')?.value?.trim()       || '',
+                youtubeUrl:       document.getElementById('setYoutube')?.value?.trim()       || '',
+                announcement:     document.getElementById('setAnnouncement')?.value?.trim()  || '',
+                heroTitle:        document.getElementById('setHeroTitle')?.value?.trim()     || '',
+                heroSubtitle:     document.getElementById('setHeroSubtitle')?.value?.trim()  || '',
+                feedbackEnabled:  document.getElementById('setFeedbackEnabled')?.checked     ?? true,
+                registrationOpen: document.getElementById('setRegistrationOpen')?.checked    ?? true,
+                maintenance:      document.getElementById('setMaintenance')?.checked         ?? false
             });
+
             showToast('Settings saved! ⚡', 'success');
+
+            // ✅ Reset glow: new baseline = what was just saved
+            originalSettingsData = getSettingsData();
+            updateSettingsBtnGlow();
+
         } catch (err) {
             showToast(translateFirebaseError(err), 'error');
         } finally {
