@@ -9,13 +9,36 @@
 
 import { subscribeSettings, DEFAULT_SETTINGS } from "./settings-api.js";
 
+// ============ 🔥 GOOGLE ANALYTICS MEASUREMENT ID ============
+// ⚠️ REPLACE 'G-XXXXXXXX' WITH YOUR REAL MEASUREMENT ID FROM GA4
+export const GA_MEASUREMENT_ID = 'G-DFK74HEJ2C';
+
 export const SITE = {
     name: 'FlickZZ Resources',
     owner: 'Arsh Siddique',
     year: 2026,
-    socials: { ...DEFAULT_SETTINGS },  // mutable; updated on settings change
+    socials: { ...DEFAULT_SETTINGS },
     settings: { ...DEFAULT_SETTINGS }
 };
+
+// ============ GOOGLE ANALYTICS INITIALIZATION ============
+function initGoogleAnalytics(measurementId) {
+    if (!measurementId || measurementId === 'G-XXXXXXXX') return;
+    
+    // Load gtag.js script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    document.head.appendChild(script);
+    
+    // Initialize dataLayer and gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ window.dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', measurementId);
+    
+    console.log('✅ Google Analytics initialized with ID:', measurementId);
+}
 
 // ============ APPLY SETTINGS TO PAGE ============
 function applySettings(settings) {
@@ -28,7 +51,6 @@ function applySettings(settings) {
     // Hero text override
     const heroTitleEl = document.querySelector('.hero-title');
     if (heroTitleEl && settings.heroTitle) {
-        // Preserve gradient span by re-using its style
         heroTitleEl.innerHTML = escapeHtml(settings.heroTitle);
     }
     const heroSubEl = document.querySelector('.hero-subtitle');
@@ -66,7 +88,6 @@ function renderAnnouncement(msg) {
         banner.id = 'siteAnnouncementBar';
         banner.className = 'site-announcement';
         document.body.prepend(banner);
-        // Push navbar down (CSS uses this var)
         document.documentElement.style.setProperty('--ann-offset', '40px');
     }
     banner.innerHTML = `
@@ -81,12 +102,9 @@ function renderAnnouncement(msg) {
 }
 
 function applyMaintenanceMode() {
-    // If current user is owner, allow access. Otherwise show maintenance screen.
-    // Skip on the admin panel itself.
     const path = window.location.pathname.toLowerCase();
     if (path.includes('flickzz-control-panel')) return;
 
-    // Lazy import to avoid circular dep; check authState if already loaded
     import('./auth.js').then(({ authState, onAuthReady }) => {
         onAuthReady(() => {
             if (authState.isOwner) return;
@@ -109,7 +127,6 @@ export function bindSocialLinks() {
     document.querySelectorAll('[data-social]').forEach(el => {
         const key = el.getAttribute('data-social');
         const url = SITE.socials[key];
-        // Already-bound element? Skip
         if (el.dataset.socialBound === '1' && el._socialUrl === url) return;
 
         if (!url) {
@@ -122,7 +139,6 @@ export function bindSocialLinks() {
         el.setAttribute('role', 'link');
         el.setAttribute('tabindex', '0');
 
-        // Replace any existing click handler
         if (el._socialClick) el.removeEventListener('click', el._socialClick);
         if (el._socialKey) el.removeEventListener('keydown', el._socialKey);
 
@@ -148,6 +164,12 @@ function escapeHtml(s) {
 // ============ BOOT ============
 function boot() {
     bindSocialLinks();
+
+    // 🔥 Initialize Google Analytics
+    if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXX') {
+        initGoogleAnalytics(GA_MEASUREMENT_ID);
+    }
+
     // Subscribe to live settings — admin saves apply across the site within ~1 second
     subscribeSettings();
     // Listen for emitted settings
