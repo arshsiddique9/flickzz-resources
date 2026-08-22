@@ -20,7 +20,6 @@
             </a>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html">Home</a></li>
-                <li class="publisher-only hidden"><a href="publisher.html">Publisher Panel</a></li>
                 <li><a href="resources.html">Resources</a></li>
                 <li><a href="leaderboard.html">Leaderboard</a></li>
                 <li><a href="about.html">About</a></li>
@@ -35,7 +34,7 @@
     <section class="page-header">
         <div class="container">
             <h1>Privacy Policy</h1>
-            <p>Last updated: April 2026</p>
+            <p>Last updated: August 2026</p>
         </div>
     </section>
 
@@ -102,17 +101,61 @@
                         <span class="contact-note">— official channel</span>
                     </li>
                 </ul>
+
+                <!-- ✅ LEGAL NOTICE BANNER (Same as terms.html) -->
+                <div class="notice-box">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <div>
+                        <strong>Legal Notice:</strong> © 2026 FlickZZ Resources. All rights reserved. Owned by <strong>Arsh Siddique</strong>. Unauthorized reproduction or distribution of any content on this platform is strictly prohibited.
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
 
     <footer class="footer">
         <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <img src="images/logo.png" alt="FlickZZ" class="logo-img">
+                        <span>Flick<span class="logo-accent">ZZ</span></span>
+                    </a>
+                    <p>Premium Minecraft resources curated for server owners and creators worldwide.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="resources.html">Resources</a>
+                    <a href="leaderboard.html">Leaderboard</a>
+                    <a href="about.html">About</a>
+                    <a href="login.html">Login</a>
+                    <a href="signup.html">Sign Up</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="privacy.html" style="color: var(--primary);">Privacy Policy</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a class="discord" data-social="discord" aria-label="Join our Discord" title="Discord"><i class="fab fa-discord"></i></a>
+                        <a class="youtube" data-social="youtube" aria-label="Subscribe on YouTube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
             <div class="footer-bottom">
                 <p>© 2026 FlickZZ Resources. All rights reserved. Owned by <strong>Arsh Siddique</strong>.</p>
+                <p class="copy-warning">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    Content on this platform is protected. Unauthorized copying, redistribution, or reuse is strictly prohibited.
+                </p>
             </div>
         </div>
     </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <script type="module" src="js/site-config.js"></script>
     <script type="module" src="js/firebase-config.js"></script>
